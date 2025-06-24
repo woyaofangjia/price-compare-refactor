@@ -10,9 +10,10 @@
       </div>
       <ul class="nav-links">
         <li><router-link to="/" class="nav-link" active-class="active" exact><i class="fas fa-home"></i> 首页</router-link></li>
-        <li><router-link to="/search" class="nav-link" active-class="active"><i class="fas fa-search"></i> 搜索商品</router-link></li>
+        <li><router-link to="/square" class="nav-link" active-class="active"><i class="fas fa-comments"></i> 动态广场</router-link></li>
         <li><router-link to="/favorites" class="nav-link" active-class="active"><i class="fas fa-heart"></i> 收藏夹</router-link></li>
         <li><router-link to="/chart" class="nav-link" active-class="active"><i class="fas fa-chart-line"></i> 价格图表</router-link></li>
+        <li><router-link to="/profile" class="nav-link" active-class="active"><i class="fas fa-user"></i> 个人中心</router-link></li>
       </ul>
       <div class="search-box">
         <input type="text" placeholder="搜索商品...">

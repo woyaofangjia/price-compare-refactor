@@ -1,13 +1,13 @@
 <template>
   <div class="sidebar">
     <div class="sidebar-top-links">
-      <router-link to="/dynamic" class="sidebar-top-link">
+      <router-link to="/square" class="sidebar-top-link">
         <i class="fas fa-comments"></i>
-        <span>动态互动</span>
+        <span>动态广场</span>
       </router-link>
-      <router-link to="/auth" class="sidebar-top-link">
+      <router-link to="/login" class="sidebar-top-link">
         <i class="fas fa-user-check"></i>
-        <span>用户认证</span>
+        <span>用户登录</span>
       </router-link>
       <router-link to="/admin" class="sidebar-top-link">
         <i class="fas fa-user-cog"></i>
@@ -25,9 +25,9 @@
         </router-link>
       </li>
       <li>
-        <router-link to="/search" class="sidebar-link" active-class="active">
-          <i class="fas fa-search"></i>
-          <span>搜索</span>
+        <router-link to="/profile" class="sidebar-link" active-class="active">
+          <i class="fas fa-user"></i>
+          <span>个人中心</span>
         </router-link>
       </li>
       <li>
@@ -40,6 +40,18 @@
         <router-link to="/chart" class="sidebar-link" active-class="active">
           <i class="fas fa-chart-line"></i>
           <span>图表</span>
+        </router-link>
+      </li>
+      <li>
+        <router-link to="/dynamic" class="sidebar-link" active-class="active">
+          <i class="fas fa-bullhorn"></i>
+          <span>动态</span>
+        </router-link>
+      </li>
+      <li>
+        <router-link to="/auth" class="sidebar-link" active-class="active">
+          <i class="fas fa-shield-alt"></i>
+          <span>认证</span>
         </router-link>
       </li>
     </ul>
