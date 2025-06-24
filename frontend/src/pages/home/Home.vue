@@ -140,6 +140,12 @@ const dropProducts = [
 .page-content {
   padding: 30px 0;
   min-height: calc(100vh - 150px);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.container {
+  padding: 0 40px;
 }
 
 /* 快速入口样式 */
@@ -149,8 +155,8 @@ const dropProducts = [
 
 .quick-links {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
   margin-top: 20px;
 }
 
@@ -284,19 +290,14 @@ const dropProducts = [
   margin-right: 5px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1200px) {
+  .quick-links {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 700px) {
   .quick-links {
     grid-template-columns: 1fr;
-  }
-  
-  .quick-link {
-    padding: 15px;
-  }
-  
-  .quick-link-icon {
-    width: 40px;
-    height: 40px;
-    font-size: 1.2rem;
   }
 }
 </style>

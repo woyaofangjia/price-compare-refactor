@@ -277,6 +277,17 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.page-content {
+  padding: 30px 0;
+  min-height: calc(100vh - 150px);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.container {
+  padding: 0 20px;
+}
+
 .dynamic-header {
   display: flex;
   justify-content: space-between;
@@ -367,9 +378,9 @@ onMounted(() => {
 }
 
 .dynamic-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 32px;
 }
 
 .dynamic-card {
@@ -548,23 +559,9 @@ onMounted(() => {
   color: #e74c3c;
 }
 
-@media (max-width: 768px) {
-  .dynamic-header {
-    flex-direction: column;
-    gap: 15px;
-    align-items: stretch;
-  }
-  
-  .btn {
-    justify-content: center;
-  }
-  
-  .image-grid {
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  }
-  
-  .content-image {
-    height: 120px;
+@media (max-width: 1000px) {
+  .dynamic-list {
+    grid-template-columns: 1fr;
   }
 }
 </style> 
