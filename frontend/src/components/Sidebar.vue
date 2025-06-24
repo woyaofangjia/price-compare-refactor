@@ -37,7 +37,7 @@
         </router-link>
       </li>
       <li>
-        <router-link to="/dynamic" class="sidebar-link" active-class="active">
+        <router-link to="/my-dynamic" class="sidebar-link" active-class="active">
           <i class="fas fa-bullhorn"></i>
           <span>动态</span>
         </router-link>

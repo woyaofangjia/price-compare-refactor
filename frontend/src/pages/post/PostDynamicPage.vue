@@ -4,7 +4,7 @@
       <h1 class="page-title">
         <i class="fas fa-pen"></i> {{ isEditing ? '编辑动态' : '发布动态' }}
       </h1>
-      <router-link to="/dynamic">
+      <router-link to="/my-dynamic">
         <button class="btn btn-outline">
           <i class="fas fa-arrow-left"></i> 返回
         </button>

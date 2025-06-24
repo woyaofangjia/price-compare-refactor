@@ -7,7 +7,10 @@ import EditProfile from '@/pages/user/EditProfile.vue'
 import Detail from '@/pages/home/Detail.vue'
 import Favorites from '@/pages/home/Favorites.vue'
 import Chart from '@/pages/home/Chart.vue'
+import SquarePage from '@/pages/post/SquarePage.vue'
 import Dynamic from '@/pages/Dynamic.vue'
+import DynamicDetailPage from '@/pages/post/DynamicDetailPage.vue'
+import PostDynamicPage from '@/pages/post/PostDynamicPage.vue'
 import Auth from '@/pages/Auth.vue'
 import Admin from '@/pages/admin/Admin.vue'
 import Dashboard from '@/pages/admin/Dashboard.vue'
@@ -16,8 +19,7 @@ import Products from '@/pages/admin/Products.vue'
 import Posts from '@/pages/admin/Posts.vue'
 import Charts from '@/pages/admin/Charts.vue'
 import Settings from '@/pages/admin/Settings.vue'
-import SquarePage from '@/pages/post/SquarePage.vue'
-import DynamicDetailPage from '@/pages/post/DynamicDetailPage.vue'
+import ProductDetailPage from '@/pages/ProductDetailPage.vue'
 
 const routes = [
   { path: '/', name: 'Home', component: Home },
@@ -28,10 +30,12 @@ const routes = [
   { path: '/detail', name: 'Detail', component: Detail },
   { path: '/favorites', name: 'Favorites', component: Favorites },
   { path: '/chart', name: 'Chart', component: Chart },
-  { path: '/dynamic', name: 'Dynamic', component: Dynamic },
-  { path: '/dynamic-detail/:id', name: 'DynamicDetail', component: DynamicDetailPage },
   { path: '/square', name: 'Square', component: SquarePage },
+  { path: '/my-dynamic', name: 'MyDynamic', component: Dynamic },
+  { path: '/dynamic-detail/:id', name: 'DynamicDetail', component: DynamicDetailPage },
+  { path: '/post/create', name: 'PostCreate', component: PostDynamicPage },
   { path: '/auth', name: 'Auth', component: Auth },
+  { path: '/product/:id', name: 'ProductDetail', component: ProductDetailPage },
     {
     path: '/admin',
     component: Admin,
