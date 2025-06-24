@@ -24,20 +24,6 @@
           <router-link to="/profile/edit" class="edit-btn">修改信息</router-link>
           <button @click="logout" class="logout-btn">退出登录</button>
         </div>
-        <div class="my-favorites">
-          <h2>我的收藏</h2>
-          <div v-if="favorites.length === 0" class="empty-favorites">暂无收藏商品</div>
-          <div v-else class="favorites-list">
-            <div v-for="product in favorites" :key="product.id" class="favorite-item">
-              <img :src="product.image" :alt="product.name">
-              <div class="product-info">
-                <h3>{{ product.name }}</h3>
-                <div class="price">{{ product.lowestPrice }} 元</div>
-              </div>
-              <button class="remove-btn" @click="removeFavorite(product.id)">移除</button>
-            </div>
-          </div>
-        </div>
         <nav class="main-nav">
           <router-link to="/" class="nav-link">首页</router-link>
           <router-link to="/profile" class="nav-link">个人中心</router-link>
@@ -55,31 +41,16 @@
             username: 'testuser',
             email: 'test@example.com',
             registerDate: '2023-01-01'
-          },
-          favorites: [
-            {
-              id: 1,
-              name: 'iPhone 13',
-              image: 'https://picsum.photos/seed/iphone13/100/100',
-              lowestPrice: 5799
-            },
-            {
-              id: 2,
-              name: '华为 Mate 50',
-              image: 'https://picsum.photos/seed/mate50/100/100',
-              lowestPrice: 4799
-            }
-          ]
+          }
         }
       },
       methods: {
         logout() {
           localStorage.removeItem('token')
+          localStorage.removeItem('user')
+          // 触发自定义事件通知导航栏更新状态
+          window.dispatchEvent(new Event('loginStatusChanged'))
           this.$router.push({ name: 'Login' })
-        },
-        removeFavorite(productId) {
-          // 从收藏中移除商品
-          this.favorites = this.favorites.filter(product => product.id !== productId)
         }
       }
     }
@@ -91,10 +62,12 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       padding: 20px;
       background: #f8fafc;
       max-width: 600px;
-      width: 80%;
+      width: 100%;
+      margin: 0 auto;
     }
 
     h1 {
@@ -110,8 +83,8 @@
       border-radius: 16px;
       box-shadow: 0 4px 24px 0 rgba(34, 51, 84, 0.12);
       padding: 30px;
-      width: 80%;
-      max-width: 600px;
+      width: 100%;
+      max-width: 500px;
       margin-bottom: 24px;
       display: flex;
       align-items: center;
@@ -157,7 +130,7 @@
       gap: 16px;
       margin-bottom: 24px;
       width: 100%;
-      max-width: 600px;
+      max-width: 500px;
     }
 
     .edit-btn, .logout-btn {
@@ -180,61 +153,6 @@
       background-color: #f44336;
       color: white;
       border: none;
-    }
-
-    .my-favorites {
-      margin-top: 30px;
-    }
-
-    .favorites-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 20px;
-      margin-top: 20px;
-    }
-
-    .favorite-item {
-      display: flex;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 10px;
-    }
-
-    .favorite-item img {
-      width: 80px;
-      height: 80px;
-      object-fit: contain;
-      margin-right: 10px;
-    }
-
-    .product-info {
-      flex: 1;
-      text-align: left;
-    }
-
-    .product-info h3 {
-      margin: 0;
-      font-size: 16px;
-    }
-
-    .price {
-      color: #f44336;
-      font-weight: bold;
-    }
-
-    .remove-btn {
-      padding: 5px 10px;
-      background-color: #f44336;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .empty-favorites {
-      padding: 20px;
-      text-align: center;
-      color: #666;
     }
 
     .main-nav {

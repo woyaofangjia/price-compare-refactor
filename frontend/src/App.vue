@@ -2,7 +2,7 @@
   <div class="app-layout">
     <Sidebar />
     <div class="main-content">
-      <Navbar />
+      <Navbar v-if="!hideNavbarOn.includes(route.path)" />
       <router-view />
     </div>
   </div>
@@ -11,11 +11,17 @@
 <script>
 import Sidebar from './components/Sidebar.vue'
 import Navbar from './components/Navbar.vue'
+import { useRoute } from 'vue-router'
 
 export default {
   components: {
     Sidebar,
     Navbar
+  },
+  setup() {
+    const route = useRoute()
+    const hideNavbarOn = ['/profile', '/login', '/register', '/profile/edit']
+    return { route, hideNavbarOn }
   }
 }
 </script>

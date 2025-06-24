@@ -1,22 +1,11 @@
 <template>
   <nav class="navbar">
     <div class="container nav-container">
-      <button class="back-btn" @click="goBack">
-        <i class="fas fa-arrow-left"></i>
-      </button>
-      <div class="logo">
-        <i class="fas fa-balance-scale"></i>
-        <span>智能比价</span>
-      </div>
-      <ul class="nav-links">
-        <li><router-link to="/" class="nav-link" active-class="active" exact><i class="fas fa-home"></i> 首页</router-link></li>
-        <li><router-link to="/square" class="nav-link" active-class="active"><i class="fas fa-comments"></i> 动态广场</router-link></li>
-        <li><router-link to="/favorites" class="nav-link" active-class="active"><i class="fas fa-heart"></i> 收藏夹</router-link></li>
-        <li><router-link to="/chart" class="nav-link" active-class="active"><i class="fas fa-chart-line"></i> 价格图表</router-link></li>
-        <li><router-link to="/profile" class="nav-link" active-class="active"><i class="fas fa-user"></i> 个人中心</router-link></li>
-      </ul>
-      <div class="search-box">
-        <input type="text" placeholder="搜索商品...">
+      <div
+        v-if="!hideSearchOn.includes(route.path)"
+        class="search-box"
+      >
+        <input type="text" placeholder="搜索商品..." />
         <button><i class="fas fa-search"></i></button>
       </div>
     </div>
@@ -24,11 +13,9 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
-const router = useRouter()
-function goBack() {
-  router.back()
-}
+import { useRoute } from 'vue-router'
+const route = useRoute()
+const hideSearchOn = ['/profile', '/login', '/register', '/profile/edit']
 </script>
 
 <style scoped>
@@ -53,53 +40,20 @@ function goBack() {
 }
 .nav-container {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 15px;
 }
-.logo {
-  font-size: 1.8rem;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-}
-.logo i {
-  margin-right: 10px;
-}
-.nav-links {
-  display: flex;
-  list-style: none;
-}
-.nav-links li {
-  margin-left: 15px;
-}
-.nav-link {
-  color: white;
-  text-decoration: none;
-  font-weight: 500;
-  padding: 8px 15px;
-  border-radius: 20px;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-}
-.nav-link i {
-  margin-right: 8px;
-  display: inline-block;
-  width: 20px;
-  text-align: center;
-}
-.nav-link:hover, .nav-link.active {
-  background-color: rgba(255,255,255,0.2);
-}
 .search-box {
   display: flex;
-  background: white;
+  background: #f5f7fb;
   border-radius: 30px;
   overflow: hidden;
-  width: 300px;
+  width: 600px;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.04);
 }
 .search-box input {
   flex: 1;
@@ -114,34 +68,11 @@ function goBack() {
   padding: 10px 20px;
   cursor: pointer;
 }
-.back-btn {
-  background: transparent;
-  border: none;
-  color: white;
-  font-size: 1.3rem;
-  margin-right: 18px;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-.back-btn:hover {
-  color: var(--success);
-}
-@media (max-width: 768px) {
-  .nav-container {
-    flex-direction: column;
-    gap: 15px;
-  }
-  .nav-links {
-    margin-top: 10px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .nav-links li {
-    margin: 5px;
-  }
+
+@media (max-width: 900px) {
   .search-box {
     width: 100%;
-    margin-top: 10px;
+    min-width: 0;
   }
 }
 </style>

@@ -37,11 +37,22 @@
       data() {
         return {
           user: {
-            username: 'testuser',
-            email: 'test@example.com'
+            username: '',
+            email: ''
           },
           newPassword: '',
           confirmPassword: ''
+        }
+      },
+      mounted() {
+        // 从localStorage获取用户信息
+        const userStr = localStorage.getItem('user')
+        if (userStr) {
+          const userData = JSON.parse(userStr)
+          this.user = {
+            username: userData.username || '',
+            email: userData.email || ''
+          }
         }
       },
       methods: {
@@ -50,6 +61,14 @@
           if (this.newPassword && this.newPassword !== this.confirmPassword) {
             alert('两次输入的新密码不一致')
             return
+          }
+
+          // 更新localStorage中的用户信息
+          const userStr = localStorage.getItem('user')
+          if (userStr) {
+            const userData = JSON.parse(userStr)
+            userData.email = this.user.email
+            localStorage.setItem('user', JSON.stringify(userData))
           }
 
           // 模拟保存修改
@@ -61,6 +80,9 @@
         },
         logout() {
           localStorage.removeItem('token')
+          localStorage.removeItem('user')
+          // 触发自定义事件通知导航栏更新状态
+          window.dispatchEvent(new Event('loginStatusChanged'))
           this.$router.push({ name: 'Login' })
         }
       }
@@ -73,10 +95,12 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       padding: 30px;
       background: #f8fafc;
       max-width: 600px;
-      width: 80%;
+      width: 100%;
+      margin: 0 auto;
     }
 
     h1 {
@@ -92,8 +116,8 @@
       border-radius: 16px;
       box-shadow: 0 4px 24px 0 rgba(34, 51, 84, 0.12);
       padding: 30px;
-      width: 80%;
-      max-width: 400px;
+      width: 100%;
+      max-width: 500px;
     }
 
     .form-group {
@@ -113,7 +137,7 @@
     }
 
     .form-group input {
-      width: 80%;
+      width: 100%;
       padding: 12px;
       border: 1px solid #e2e8f0;
       border-radius: 8px;

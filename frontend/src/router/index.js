@@ -19,7 +19,7 @@ const routes = [
   { path: '/login', name: 'Login', component: Login },
   { path: '/register', name: 'Register', component: Register },
   { path: '/profile', name: 'Profile', component: Profile },
-  { path: '/edit-profile', name: 'EditProfile', component: EditProfile },
+  { path: '/profile/edit', name: 'EditProfile', component: EditProfile },
   { path: '/detail', name: 'Detail', component: Detail },
   { path: '/favorites', name: 'Favorites', component: Favorites },
   { path: '/chart', name: 'Chart', component: Chart },
@@ -27,7 +27,7 @@ const routes = [
   { path: '/auth', name: 'Auth', component: Auth },
   { path: '/admin', name: 'Admin', component: Admin },
   { path: '/square', name: 'Square', component: SquarePage },
-  { path: '/post-dynamic', name: 'PostDynamic', component: PostDynamicPage },
+  { path: '/post/create', name: 'PostDynamic', component: PostDynamicPage },
   { path: '/dynamic-detail/:id', name: 'DynamicDetail', component: DynamicDetailPage },
   // 后续添加更多路由
 ]

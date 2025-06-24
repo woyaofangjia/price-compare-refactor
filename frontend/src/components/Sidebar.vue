@@ -48,12 +48,6 @@
           <span>动态</span>
         </router-link>
       </li>
-      <li>
-        <router-link to="/auth" class="sidebar-link" active-class="active">
-          <i class="fas fa-shield-alt"></i>
-          <span>认证</span>
-        </router-link>
-      </li>
     </ul>
   </div>
 </template>
