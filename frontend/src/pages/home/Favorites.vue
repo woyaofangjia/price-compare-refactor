@@ -4,7 +4,7 @@
       <h2 class="section-title">我的收藏夹</h2>
       <div class="favorites-container">
         <div class="favorites-grid">
-          <div class="favorite-item" v-for="item in favorites" :key="item.title">
+          <div class="favorite-item" v-for="item in favorites" :key="item.title" @click="goToProduct(item.id)" style="cursor:pointer;">
             <div class="favorite-image">
               <img :src="item.img" :alt="item.title" />
             </div>
@@ -29,6 +29,8 @@
 
 <script setup>
 import { reactive } from 'vue'
+import { useRouter } from 'vue-router'
+
 const favorites = reactive([
   {
     img: 'https://via.placeholder.com/80x80?text=手机',
@@ -52,6 +54,11 @@ const favorites = reactive([
     alertPrice: 800
   }
 ])
+
+const router = useRouter()
+function goToProduct(id) {
+  router.push(`/product/${id}`)
+}
 </script>
 
 <style scoped>

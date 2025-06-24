@@ -41,7 +41,7 @@
       
       <!-- 用户动态列表 -->
       <div v-else class="dynamic-list">
-        <div v-for="(post, index) in userPosts" :key="index" class="dynamic-card">
+        <div v-for="(post, index) in userPosts" :key="index" class="dynamic-card" @click="openDetail(post)" style="cursor:pointer;">
           <div class="dynamic-header">
             <div class="user-info">
               <img :src="post.userAvatar" :alt="post.username" class="user-avatar" />
@@ -78,6 +78,9 @@
                 <div class="product-name">{{ post.product.name }}</div>
                 <div class="product-price">{{ post.product.price }}</div>
                 <div class="product-platform">{{ post.product.platform }}</div>
+                <div class="product-detail" style="margin-top:8px; color:#888; font-size:0.98rem; background:#f8f8f8; border-radius:8px; padding:8px 12px;">
+                  {{ post.product.detail || '这是一款高性价比的优质商品，深受用户好评。' }}
+                </div>
               </div>
             </div>
           </div>
@@ -104,15 +107,35 @@
       </div>
     </div>
   </section>
+  <div v-if="showDetail" class="detail-dialog-mask" @click.self="closeDetail">
+    <div class="detail-dialog">
+      <DynamicDetailContent
+        :post="selectedPost"
+        :comments="detailComments"
+        :isLiked="false"
+        :isCollected="false"
+        :likes="selectedPost?.likes || 0"
+        @like="() => {}"
+        @collect="() => {}"
+        @submit-comment="onSubmitComment"
+        @delete-comment="onDeleteComment"
+      />
+      <button class="close-btn" @click="closeDetail">关闭</button>
+    </div>
+  </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import DynamicDetailContent from './post/components/DynamicDetailContent.vue'
 
 const router = useRouter()
 const isLoggedIn = ref(false)
 const userPosts = ref([])
+const showDetail = ref(false)
+const selectedPost = ref(null)
+const detailComments = ref([])
 
 // 检查登录状态
 function checkLoginStatus() {
@@ -262,6 +285,27 @@ function clearAllPosts() {
       alert('清空所有动态时出现错误，请重试')
     }
   }
+}
+
+function openDetail(post) {
+  selectedPost.value = post
+  // 模拟评论
+  detailComments.value = [
+    { author: '我', text: '这是我的动态评论', time: '1小时前' }
+  ]
+  showDetail.value = true
+}
+
+function closeDetail() {
+  showDetail.value = false
+}
+
+function onSubmitComment(comment) {
+  detailComments.value.push({ author: '你', text: comment, time: '刚刚' })
+}
+
+function onDeleteComment(index) {
+  detailComments.value.splice(index, 1)
 }
 
 onMounted(() => {
@@ -531,6 +575,15 @@ onMounted(() => {
   color: var(--gray);
 }
 
+.product-detail {
+  margin-top: 8px;
+  color: #888;
+  font-size: 0.98rem;
+  background: #f8f8f8;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
 .dynamic-footer {
   display: flex;
   justify-content: space-between;
@@ -563,5 +616,34 @@ onMounted(() => {
   .dynamic-list {
     grid-template-columns: 1fr;
   }
+}
+
+.detail-dialog-mask {
+  position: fixed;
+  left: 0; top: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.18);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.detail-dialog {
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px 24px 24px 24px;
+  min-width: 340px;
+  max-width: 420px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  position: relative;
+}
+.close-btn {
+  position: absolute;
+  right: 18px;
+  top: 12px;
+  background: #eee;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 12px;
+  cursor: pointer;
 }
 </style> 

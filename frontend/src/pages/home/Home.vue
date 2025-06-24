@@ -7,7 +7,7 @@
           <i class="fas fa-rocket"></i> 快速入口
         </h2>
         <div class="quick-links">
-          <router-link to="/dynamic" class="quick-link">
+          <router-link to="/square" class="quick-link">
             <div class="quick-link-icon">
               <i class="fas fa-bullhorn"></i>
             </div>
@@ -48,7 +48,7 @@
 
       <h2 class="section-title">今日热门商品</h2>
       <div class="products-grid">
-        <div class="product-card" v-for="item in hotProducts" :key="item.title">
+        <div class="product-card" v-for="item in hotProducts" :key="item.id" @click="goToProduct(item.id)" style="cursor:pointer;">
           <div class="product-image">
             <img :src="item.img" :alt="item.title" />
           </div>
@@ -85,6 +85,10 @@
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
 const hotProducts = [
   {
     img: 'https://via.placeholder.com/200x200?text=旗舰手机',
@@ -133,6 +137,10 @@ const dropProducts = [
     platforms: ['天猫', '拼多多']
   }
 ];
+
+function goToProduct(id) {
+  router.push(`/product/${id}`)
+}
 </script>
 
 <style scoped>
