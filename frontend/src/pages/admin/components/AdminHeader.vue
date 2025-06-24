@@ -1,6 +1,26 @@
 <template>
   <div class="admin-header">
     <div class="admin-title">{{ title }}</div>
+    <ul class="admin-nav">
+      <li :class="{active: $route.path === '/admin/dashboard'}" @click="$router.push('/admin/dashboard')">
+        <i class="fas fa-tachometer-alt"></i> 控制面板
+      </li>
+      <li :class="{active: $route.path === '/admin/users'}" @click="$router.push('/admin/users')">
+        <i class="fas fa-users"></i> 用户管理
+      </li>
+      <li :class="{active: $route.path === '/admin/products'}" @click="$router.push('/admin/products')">
+        <i class="fas fa-shopping-bag"></i> 商品管理
+      </li>
+      <li :class="{active: $route.path === '/admin/posts'}" @click="$router.push('/admin/posts')">
+        <i class="fas fa-comments"></i> 动态管理
+      </li>
+      <li :class="{active: $route.path === '/admin/charts'}" @click="$router.push('/admin/charts')">
+        <i class="fas fa-chart-pie"></i> 图表分析
+      </li>
+      <li :class="{active: $route.path === '/admin/settings'}" @click="$router.push('/admin/settings')">
+        <i class="fas fa-cog"></i> 系统设置
+      </li>
+    </ul>
     <div class="admin-actions">
       <div class="notification-badge">
         <i class="fas fa-bell"></i>
@@ -90,17 +110,45 @@ export default {
   align-items: center;
   padding: 0 25px;
   z-index: 99;
+  position: relative;
 }
 
 .admin-title {
   font-size: 1.5rem;
   font-weight: 600;
   color: var(--primary);
+  margin-right: 30px;
+}
+
+.admin-nav {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 18px;
+}
+.admin-nav li {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 1rem;
+  color: var(--gray);
+  transition: background 0.2s, color 0.2s;
+}
+.admin-nav li.active, .admin-nav li:hover {
+  background: var(--primary);
+  color: #fff;
+}
+.admin-nav li i {
+  margin-right: 6px;
 }
 
 .admin-actions {
   display: flex;
   align-items: center;
+  margin-left: auto;
 }
 
 .admin-user {
@@ -190,17 +238,25 @@ export default {
   to { opacity: 1; transform: translateY(0); }
 }
 
+@media (max-width: 1100px) {
+  .admin-nav {
+    gap: 8px;
+  }
+  .admin-title {
+    font-size: 1.1rem;
+    margin-right: 10px;
+  }
+}
 @media (max-width: 768px) {
   .admin-header {
-    padding: 0 15px;
+    padding: 0 10px;
   }
-  
   .admin-title {
-    font-size: 1.2rem;
+    font-size: 1rem;
   }
-  
-  .admin-user span {
-    display: none;
+  .admin-nav li {
+    font-size: 0.9rem;
+    padding: 6px 8px;
   }
 }
 </style>

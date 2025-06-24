@@ -55,6 +55,7 @@
     <script setup>
     import { reactive, inject } from 'vue'
     import { useRouter } from 'vue-router'
+    import axios from 'axios'
     const form = reactive({ username: '', email: '', password: '', confirmPassword: '' })
     const errors = reactive({ username: '', email: '', password: '', confirmPassword: '' })
     const router = useRouter()
@@ -92,29 +93,30 @@
     }
     function register() {
       if (validateForm()) {
-        setTimeout(() => {
-          // 设置登录状态到localStorage
-          const userData = {
-            id: 2,
-            username: form.username,
-            email: form.email,
-            phone: '13900139000',
-            joinDate: new Date().toISOString().split('T')[0]
+        axios.post('/api/register', {
+          username: form.username,
+          email: form.email,
+          password: form.password
+        }).then(res => {
+          if (res.data.code === 0) {
+            const userData = res.data.data.user
+            const token = res.data.data.token
+            localStorage.setItem('token', token)
+            localStorage.setItem('user', JSON.stringify(userData))
+            window.dispatchEvent(new Event('loginStatusChanged'))
+            if (store) {
+              store.login(userData)
+              store.showNotification('注册成功！', 'success')
+            }
+            router.push('/profile')
+          } else {
+            errors.password = res.data.message || '注册失败'
+            if (store) store.showNotification(errors.password, 'error')
           }
-          localStorage.setItem('token', 'mock-token-' + Date.now())
-          localStorage.setItem('user', JSON.stringify(userData))
-          
-          // 触发自定义事件通知导航栏更新状态
-          window.dispatchEvent(new Event('loginStatusChanged'))
-          
-          // 如果store存在，也更新store
-          if (store) {
-            store.login(userData)
-            store.showNotification('注册成功！', 'success')
-          }
-          
-          router.push('/profile')
-        }, 500)
+        }).catch(() => {
+          errors.password = '网络错误，请稍后重试'
+          if (store) store.showNotification(errors.password, 'error')
+        })
       }
     }
     </script>

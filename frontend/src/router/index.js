@@ -16,6 +16,8 @@ import Products from '@/pages/admin/Products.vue'
 import Posts from '@/pages/admin/Posts.vue'
 import Charts from '@/pages/admin/Charts.vue'
 import Settings from '@/pages/admin/Settings.vue'
+import SquarePage from '@/pages/post/SquarePage.vue'
+import DynamicDetailPage from '@/pages/post/DynamicDetailPage.vue'
 
 const routes = [
   { path: '/', name: 'Home', component: Home },
@@ -27,6 +29,8 @@ const routes = [
   { path: '/favorites', name: 'Favorites', component: Favorites },
   { path: '/chart', name: 'Chart', component: Chart },
   { path: '/dynamic', name: 'Dynamic', component: Dynamic },
+  { path: '/dynamic-detail/:id', name: 'DynamicDetail', component: DynamicDetailPage },
+  { path: '/square', name: 'Square', component: SquarePage },
   { path: '/auth', name: 'Auth', component: Auth },
     {
     path: '/admin',

@@ -1,5 +1,5 @@
     <template>
-      <div class="profile-container">
+      <div class="main-container">
         <h1>个人中心</h1>
         <div class="user-info">
           <div class="avatar">
@@ -57,17 +57,13 @@
     </script>
 
     <style scoped>
-    .profile-container {
+    .main-container {
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 20px;
-      background: #f8fafc;
-      max-width: 600px;
-      width: 100%;
-      margin: 0 auto;
+      padding: 20px 0;
     }
 
     h1 {
