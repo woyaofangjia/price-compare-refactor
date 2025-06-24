@@ -3,20 +3,22 @@
     <div class="container">
       <h2 class="section-title">我的收藏夹</h2>
       <div class="favorites-container">
-        <div class="favorite-item" v-for="item in favorites" :key="item.title">
-          <div class="favorite-image">
-            <img :src="item.img" :alt="item.title" />
-          </div>
-          <div class="favorite-info">
-            <h3>{{ item.title }}</h3>
-            <div class="favorite-price">{{ item.price }}</div>
-            <div :class="['price-change', item.priceChange > 0 ? 'price-up' : 'price-down']">
-              {{ item.priceChange > 0 ? '涨' : '降' }} {{ Math.abs(item.priceChange) }}
+        <div class="favorites-grid">
+          <div class="favorite-item" v-for="item in favorites" :key="item.title">
+            <div class="favorite-image">
+              <img :src="item.img" :alt="item.title" />
             </div>
-            <div class="alert-setting">
-              <span>提醒价：</span>
-              <input type="number" v-model="item.alertPrice" style="width: 100px;" />
-              <span>元时通知我</span>
+            <div class="favorite-info">
+              <h3>{{ item.title }}</h3>
+              <div class="favorite-price">{{ item.price }}</div>
+              <div :class="['price-change', item.priceChange > 0 ? 'price-up' : 'price-down']">
+                {{ item.priceChange > 0 ? '涨' : '降' }} {{ Math.abs(item.priceChange) }}
+              </div>
+              <div class="alert-setting">
+                <span>提醒价：</span>
+                <input type="number" v-model="item.alertPrice" style="width: 100px;" />
+                <span>元时通知我</span>
+              </div>
             </div>
           </div>
         </div>
@@ -69,6 +71,12 @@ const favorites = reactive([
   padding: 25px;
   box-shadow: 0 5px 15px rgba(0,0,0,0.05);
 }
+.favorites-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+  margin-top: 20px;
+}
 .favorite-item {
   display: flex;
   padding: 15px 0;
@@ -118,5 +126,16 @@ const favorites = reactive([
   border: 1px solid var(--light-gray);
   border-radius: 5px;
   margin: 0 10px;
+}
+
+@media (max-width: 1200px) {
+  .favorites-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 700px) {
+  .favorites-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

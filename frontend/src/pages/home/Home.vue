@@ -1,6 +1,51 @@
 <template>
   <section class="page-content">
     <div class="container">
+      <!-- 快速入口区域 -->
+      <div class="quick-access">
+        <h2 class="section-title">
+          <i class="fas fa-rocket"></i> 快速入口
+        </h2>
+        <div class="quick-links">
+          <router-link to="/dynamic" class="quick-link">
+            <div class="quick-link-icon">
+              <i class="fas fa-bullhorn"></i>
+            </div>
+            <div class="quick-link-text">
+              <h3>我的动态</h3>
+              <p>查看和管理您的动态</p>
+            </div>
+          </router-link>
+          <router-link to="/square" class="quick-link">
+            <div class="quick-link-icon">
+              <i class="fas fa-comments"></i>
+            </div>
+            <div class="quick-link-text">
+              <h3>动态广场</h3>
+              <p>浏览所有用户动态</p>
+            </div>
+          </router-link>
+          <router-link to="/favorites" class="quick-link">
+            <div class="quick-link-icon">
+              <i class="fas fa-heart"></i>
+            </div>
+            <div class="quick-link-text">
+              <h3>收藏夹</h3>
+              <p>查看收藏的商品</p>
+            </div>
+          </router-link>
+          <router-link to="/chart" class="quick-link">
+            <div class="quick-link-icon">
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="quick-link-text">
+              <h3>价格图表</h3>
+              <p>查看价格趋势</p>
+            </div>
+          </router-link>
+        </div>
+      </div>
+
       <h2 class="section-title">今日热门商品</h2>
       <div class="products-grid">
         <div class="product-card" v-for="item in hotProducts" :key="item.title">
@@ -95,7 +140,70 @@ const dropProducts = [
 .page-content {
   padding: 30px 0;
   min-height: calc(100vh - 150px);
+  max-width: 1400px;
+  margin: 0 auto;
 }
+
+.container {
+  padding: 0 40px;
+}
+
+/* 快速入口样式 */
+.quick-access {
+  margin-bottom: 40px;
+}
+
+.quick-links {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+  margin-top: 20px;
+}
+
+.quick-link {
+  display: flex;
+  align-items: center;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+}
+
+.quick-link:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  color: var(--primary);
+}
+
+.quick-link-icon {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15px;
+  color: white;
+  font-size: 1.5rem;
+}
+
+.quick-link-text h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: var(--dark);
+}
+
+.quick-link-text p {
+  font-size: 0.9rem;
+  color: var(--gray);
+  margin: 0;
+}
+
 /* 其他首页样式 */
 .section-title {
   font-size: 1.8rem;
@@ -103,7 +211,14 @@ const dropProducts = [
   padding-bottom: 10px;
   border-bottom: 2px solid var(--light-gray);
   color: var(--primary);
+  display: flex;
+  align-items: center;
 }
+
+.section-title i {
+  margin-right: 10px;
+}
+
 .products-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -173,5 +288,16 @@ const dropProducts = [
   border-radius: 5px;
   font-size: 0.8rem;
   margin-right: 5px;
+}
+
+@media (max-width: 1200px) {
+  .quick-links {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 700px) {
+  .quick-links {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

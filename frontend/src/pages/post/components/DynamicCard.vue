@@ -1,5 +1,6 @@
 <template>
   <div class="dynamic-card">
+    <slot name="extra"></slot>
     <div class="dynamic-header">
       <img :src="post.userAvatar" class="user-avatar" alt="用户头像" />
       <div class="user-info">
@@ -25,9 +26,15 @@
     </div>
     <div class="dynamic-footer">
       <div class="interaction-bar">
-        <div class="interaction-btn"><i class="fas fa-heart"></i> <span>{{ post.likes }}</span></div>
-        <div class="interaction-btn"><i class="fas fa-comment"></i> <span>{{ post.comments }}</span></div>
-        <div class="interaction-btn"><i class="fas fa-star"></i> 收藏</div>
+        <div class="interaction-btn" :class="{ active: isLiked }" @click="handleLike">
+          <i class="fas fa-heart"></i> <span>{{ likes }}</span>
+        </div>
+        <div class="interaction-btn" @click="handleComment">
+          <i class="fas fa-comment"></i> <span>{{ post.comments }}</span>
+        </div>
+        <div class="interaction-btn" :class="{ active: isCollected }" @click="handleCollect">
+          <i class="fas fa-star"></i> 收藏
+        </div>
       </div>
       <div class="interaction-btn"><i class="fas fa-share-alt"></i> 分享</div>
     </div>
@@ -35,11 +42,36 @@
 </template>
 
 <script setup>
-defineProps({
-  post: Object
-});
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const props = defineProps({ post: Object })
+const router = useRouter()
+
+const isLiked = ref(false)
+const isCollected = ref(false)
+const likes = ref(props.post.likes || 0)
+
+function handleLike() {
+  isLiked.value = !isLiked.value
+  likes.value += isLiked.value ? 1 : -1
+}
+
+function handleCollect() {
+  isCollected.value = !isCollected.value
+}
+
+function handleComment() {
+  router.push(`/dynamic-detail/${props.post.id || ''}`)
+}
 </script>
 
 <style scoped>
 @import '../styles/square-page.scss';
+.interaction-btn.active i.fa-heart {
+  color: #e74c3c;
+}
+.interaction-btn.active i.fa-star {
+  color: #f7b731;
+}
 </style>
