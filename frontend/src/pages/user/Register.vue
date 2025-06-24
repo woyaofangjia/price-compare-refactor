@@ -93,14 +93,26 @@
     function register() {
       if (validateForm()) {
         setTimeout(() => {
-          store.login({
+          // 设置登录状态到localStorage
+          const userData = {
             id: 2,
             username: form.username,
             email: form.email,
             phone: '13900139000',
             joinDate: new Date().toISOString().split('T')[0]
-          })
-          store.showNotification('注册成功！', 'success')
+          }
+          localStorage.setItem('token', 'mock-token-' + Date.now())
+          localStorage.setItem('user', JSON.stringify(userData))
+          
+          // 触发自定义事件通知导航栏更新状态
+          window.dispatchEvent(new Event('loginStatusChanged'))
+          
+          // 如果store存在，也更新store
+          if (store) {
+            store.login(userData)
+            store.showNotification('注册成功！', 'success')
+          }
+          
           router.push('/profile')
         }, 500)
       }

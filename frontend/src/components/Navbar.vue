@@ -18,16 +18,66 @@
         <input type="text" placeholder="搜索商品...">
         <button><i class="fas fa-search"></i></button>
       </div>
+      <div class="user-actions">
+        <router-link v-if="!isLoggedIn" to="/login" class="auth-btn login-btn">
+          <i class="fas fa-sign-in-alt"></i> 登录
+        </router-link>
+        <router-link v-if="!isLoggedIn" to="/register" class="auth-btn register-btn">
+          <i class="fas fa-user-plus"></i> 注册
+        </router-link>
+        <router-link v-if="isLoggedIn" to="/profile" class="auth-btn profile-btn">
+          <i class="fas fa-user"></i> 个人中心
+        </router-link>
+        <button v-if="isLoggedIn" @click="logout" class="auth-btn logout-btn">
+          <i class="fas fa-sign-out-alt"></i> 退出
+        </button>
+      </div>
     </div>
   </nav>
 </template>
 
 <script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+
 const router = useRouter()
+const isLoggedIn = ref(false)
+
 function goBack() {
   router.back()
 }
+
+function logout() {
+  localStorage.removeItem('token')
+  localStorage.removeItem('user')
+  isLoggedIn.value = false
+  router.push('/')
+}
+
+function checkLoginStatus() {
+  const token = localStorage.getItem('token')
+  const user = localStorage.getItem('user')
+  isLoggedIn.value = !!(token && user)
+}
+
+function handleStorageChange(e) {
+  if (e.key === 'token' || e.key === 'user') {
+    checkLoginStatus()
+  }
+}
+
+onMounted(() => {
+  checkLoginStatus()
+  // 监听localStorage变化
+  window.addEventListener('storage', handleStorageChange)
+  // 监听自定义事件（用于同一页面内的状态变化）
+  window.addEventListener('loginStatusChanged', checkLoginStatus)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('storage', handleStorageChange)
+  window.removeEventListener('loginStatusChanged', checkLoginStatus)
+})
 </script>
 
 <style scoped>
@@ -125,6 +175,54 @@ function goBack() {
 .back-btn:hover {
   color: var(--success);
 }
+.user-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.auth-btn {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 8px 15px;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.auth-btn i {
+  margin-right: 6px;
+  display: inline-block;
+  width: 16px;
+  text-align: center;
+}
+.login-btn {
+  background-color: rgba(255,255,255,0.2);
+}
+.login-btn:hover {
+  background-color: rgba(255,255,255,0.3);
+}
+.register-btn {
+  background-color: var(--success);
+}
+.register-btn:hover {
+  background-color: #3bb8d9;
+}
+.profile-btn {
+  background-color: rgba(255,255,255,0.2);
+}
+.profile-btn:hover {
+  background-color: rgba(255,255,255,0.3);
+}
+.logout-btn {
+  background-color: #e74c3c;
+}
+.logout-btn:hover {
+  background-color: #c0392b;
+}
 @media (max-width: 768px) {
   .nav-container {
     flex-direction: column;
@@ -141,6 +239,11 @@ function goBack() {
   .search-box {
     width: 100%;
     margin-top: 10px;
+  }
+  .user-actions {
+    margin-top: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 }
 </style>
