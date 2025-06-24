@@ -1,0 +1,122 @@
+<template>
+  <section class="page-content">
+    <div class="container">
+      <h2 class="section-title">我的收藏夹</h2>
+      <div class="favorites-container">
+        <div class="favorite-item" v-for="item in favorites" :key="item.title">
+          <div class="favorite-image">
+            <img :src="item.img" :alt="item.title" />
+          </div>
+          <div class="favorite-info">
+            <h3>{{ item.title }}</h3>
+            <div class="favorite-price">{{ item.price }}</div>
+            <div :class="['price-change', item.priceChange > 0 ? 'price-up' : 'price-down']">
+              {{ item.priceChange > 0 ? '涨' : '降' }} {{ Math.abs(item.priceChange) }}
+            </div>
+            <div class="alert-setting">
+              <span>提醒价：</span>
+              <input type="number" v-model="item.alertPrice" style="width: 100px;" />
+              <span>元时通知我</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</template>
+
+<script setup>
+import { reactive } from 'vue'
+const favorites = reactive([
+  {
+    img: 'https://via.placeholder.com/80x80?text=手机',
+    title: '某品牌旗舰手机 8GB+256GB 全网通',
+    price: '￥3,299',
+    priceChange: -180,
+    alertPrice: 3000
+  },
+  {
+    img: 'https://via.placeholder.com/80x80?text=笔记本',
+    title: '某品牌轻薄笔记本 i7高配 16GB内存',
+    price: '￥6,499',
+    priceChange: 150,
+    alertPrice: 6000
+  },
+  {
+    img: 'https://via.placeholder.com/80x80?text=手表',
+    title: '智能健康手表 多功能 续航强',
+    price: '￥899',
+    priceChange: -85,
+    alertPrice: 800
+  }
+])
+</script>
+
+<style scoped>
+.page-content {
+  padding: 30px 0;
+}
+.section-title {
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--light-gray);
+  color: var(--primary);
+}
+.favorites-container {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+.favorite-item {
+  display: flex;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--light-gray);
+}
+.favorite-image {
+  width: 100px;
+  height: 100px;
+  background: var(--light);
+  border-radius: 8px;
+  margin-right: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.favorite-info {
+  flex: 1;
+}
+.favorite-price {
+  color: var(--warning);
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin: 5px 0;
+}
+.price-change {
+  font-size: 0.9rem;
+  padding: 3px 8px;
+  border-radius: 10px;
+  display: inline-block;
+}
+.price-up {
+  background-color: rgba(255, 0, 0, 0.1);
+  color: #e74c3c;
+}
+.price-down {
+  background-color: rgba(0, 200, 83, 0.1);
+  color: #00c853;
+}
+.alert-setting {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+.alert-setting input {
+  width: 100px;
+  padding: 5px 10px;
+  border: 1px solid var(--light-gray);
+  border-radius: 5px;
+  margin: 0 10px;
+}
+</style>
