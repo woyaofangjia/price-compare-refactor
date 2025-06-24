@@ -173,5 +173,9 @@
     .nav-link:hover {
       background-color: #f0f0f0;
     }
+
+    @media (prefers-color-scheme: dark) {
+      body { color: white; }
+    }
     </style>
   

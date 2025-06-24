@@ -5,9 +5,9 @@
         <i class="fas fa-comments"></i>
         <span>动态广场</span>
       </router-link>
-      <router-link to="/login" class="sidebar-top-link">
+      <router-link :to="isLoggedIn ? '/profile' : '/login'" class="sidebar-top-link">
         <i class="fas fa-user-check"></i>
-        <span>用户登录</span>
+        <span>{{ isLoggedIn ? '个人中心' : '用户登录' }}</span>
       </router-link>
       <router-link to="/admin" class="sidebar-top-link">
         <i class="fas fa-user-cog"></i>
@@ -22,12 +22,6 @@
         <router-link to="/" class="sidebar-link" active-class="active" exact>
           <i class="fas fa-home"></i>
           <span>首页</span>
-        </router-link>
-      </li>
-      <li>
-        <router-link to="/profile" class="sidebar-link" active-class="active">
-          <i class="fas fa-user"></i>
-          <span>个人中心</span>
         </router-link>
       </li>
       <li>
@@ -51,6 +45,25 @@
     </ul>
   </div>
 </template>
+
+<script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
+const isLoggedIn = ref(false)
+function checkLoginStatus() {
+  const token = localStorage.getItem('token')
+  const user = localStorage.getItem('user')
+  isLoggedIn.value = !!(token && user)
+}
+onMounted(() => {
+  checkLoginStatus()
+  window.addEventListener('storage', checkLoginStatus)
+  window.addEventListener('loginStatusChanged', checkLoginStatus)
+})
+onUnmounted(() => {
+  window.removeEventListener('storage', checkLoginStatus)
+  window.removeEventListener('loginStatusChanged', checkLoginStatus)
+})
+</script>
 
 <style scoped>
 :root {
