@@ -1,5 +1,5 @@
 <template>
-  <div class="dynamic-card">
+  <div class="dynamic-card" @click="handleCardClick">
     <slot name="extra"></slot>
     <div class="dynamic-header">
       <img :src="post.userAvatar" class="user-avatar" alt="用户头像" />
@@ -26,13 +26,13 @@
     </div>
     <div class="dynamic-footer">
       <div class="interaction-bar">
-        <div class="interaction-btn" :class="{ active: isLiked }" @click="handleLike">
+        <div class="interaction-btn" :class="{ active: isLiked }" @click.stop="handleLike">
           <i class="fas fa-heart"></i> <span>{{ likes }}</span>
         </div>
-        <div class="interaction-btn" @click="handleComment">
+        <div class="interaction-btn" @click.stop="handleComment">
           <i class="fas fa-comment"></i> <span>{{ post.comments }}</span>
         </div>
-        <div class="interaction-btn" :class="{ active: isCollected }" @click="handleCollect">
+        <div class="interaction-btn" :class="{ active: isCollected }" @click.stop="handleCollect">
           <i class="fas fa-star"></i> 收藏
         </div>
       </div>
@@ -46,11 +46,16 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const props = defineProps({ post: Object })
+const emit = defineEmits(['card-click'])
 const router = useRouter()
 
 const isLiked = ref(false)
 const isCollected = ref(false)
 const likes = ref(props.post.likes || 0)
+
+function handleCardClick() {
+  emit('card-click', props.post)
+}
 
 function handleLike() {
   isLiked.value = !isLiked.value
@@ -62,7 +67,7 @@ function handleCollect() {
 }
 
 function handleComment() {
-  router.push(`/dynamic-detail/${props.post.id || ''}`)
+  emit('card-click', props.post)
 }
 </script>
 

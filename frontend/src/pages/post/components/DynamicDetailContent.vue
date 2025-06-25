@@ -37,7 +37,13 @@
           </div>
           <div class="comment-text">{{ c.text }}</div>
         </div>
-        <button class="delete-comment-btn" @click="$emit('delete-comment', index)">删除</button>
+        <button 
+          v-if="canDeleteComment(c)" 
+          class="delete-comment-btn" 
+          @click="$emit('delete-comment', index)"
+        >
+          删除
+        </button>
       </div>
       <div class="comment-form">
         <textarea v-model="newComment" class="form-control" placeholder="写下你的评论..."></textarea>
@@ -54,7 +60,8 @@ const props = defineProps({
   comments: Array,
   isLiked: Boolean,
   isCollected: Boolean,
-  likes: Number
+  likes: Number,
+  currentUser: Object // 当前登录用户信息
 })
 const emit = defineEmits(['like', 'collect', 'submit-comment', 'delete-comment'])
 const newComment = ref('')
@@ -64,6 +71,19 @@ function submitComment() {
     emit('submit-comment', newComment.value)
     newComment.value = ''
   }
+}
+
+// 判断是否可以删除评论
+function canDeleteComment(comment) {
+  if (!props.currentUser) return false
+  
+  // 评论作者可以删除自己的评论
+  if (comment.author === props.currentUser.username) return true
+  
+  // 动态作者可以删除自己动态下的所有评论
+  if (props.post.username === props.currentUser.username) return true
+  
+  return false
 }
 </script>
 

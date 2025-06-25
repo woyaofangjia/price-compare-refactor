@@ -12,7 +12,7 @@
         v-for="(post, index) in posts"
         :key="post.id || index"
         :post="post"
-        @click="openDetail(post)"
+        @card-click="openDetail"
         style="cursor:pointer;"
       >
         <template #extra v-if="post.product">
@@ -38,6 +38,7 @@
           :isLiked="false"
           :isCollected="false"
           :likes="selectedPost?.likes || 0"
+          :currentUser="currentUser"
           @like="() => {}"
           @collect="() => {}"
           @submit-comment="onSubmitComment"
@@ -90,13 +91,23 @@ const posts = ref([
 const showDetail = ref(false)
 const selectedPost = ref(null)
 const detailComments = ref([])
+const currentUser = ref(null)
+
+// 获取当前用户信息
+function getCurrentUser() {
+  const user = localStorage.getItem('user')
+  if (user) {
+    currentUser.value = JSON.parse(user)
+  }
+}
 
 function openDetail(post) {
   selectedPost.value = post
   // 模拟评论
   detailComments.value = [
     { author: '用户A', text: '很棒的测评！', time: '1小时前' },
-    { author: '用户B', text: '支持一下！', time: '30分钟前' }
+    { author: '用户B', text: '支持一下！', time: '30分钟前' },
+    { author: currentUser.value?.username || '我', text: '我也来评论一下', time: '刚刚' }
   ]
   showDetail.value = true
 }
@@ -104,11 +115,14 @@ function closeDetail() {
   showDetail.value = false
 }
 function onSubmitComment(comment) {
-  detailComments.value.push({ author: '你', text: comment, time: '刚刚' })
+  detailComments.value.push({ author: currentUser.value?.username || '你', text: comment, time: '刚刚' })
 }
 function onDeleteComment(index) {
   detailComments.value.splice(index, 1)
 }
+
+// 初始化时获取用户信息
+getCurrentUser()
 </script>
 
 <style scoped>

@@ -51,10 +51,10 @@
               </div>
             </div>
             <div class="post-actions">
-              <button class="action-btn" @click="editPost(post.id)">
+              <button class="action-btn" @click.stop="editPost(post.id)">
                 <i class="fas fa-edit"></i>
               </button>
-              <button class="action-btn delete" @click="deletePost(post.id)">
+              <button class="action-btn delete" @click.stop="deletePost(post.id)">
                 <i class="fas fa-trash"></i>
               </button>
             </div>
@@ -69,7 +69,7 @@
                 :src="img" 
                 :alt="`图片${imgIndex + 1}`"
                 class="content-image"
-                @click="previewImage(img)"
+                @click.stop="previewImage(img)"
               />
             </div>
             <div v-if="post.product" class="product-card">
@@ -95,10 +95,10 @@
               </span>
             </div>
             <div class="post-actions">
-              <button class="action-btn" @click="likePost(post.id)">
+              <button class="action-btn" @click.stop="likePost(post.id)">
                 <i :class="post.isLiked ? 'fas fa-heart liked' : 'far fa-heart'"></i>
               </button>
-              <button class="action-btn" @click="commentPost(post.id)">
+              <button class="action-btn" @click.stop="commentPost(post.id)">
                 <i class="fas fa-comment"></i>
               </button>
             </div>
@@ -115,6 +115,7 @@
         :isLiked="false"
         :isCollected="false"
         :likes="selectedPost?.likes || 0"
+        :currentUser="currentUser"
         @like="() => {}"
         @collect="() => {}"
         @submit-comment="onSubmitComment"
@@ -136,12 +137,16 @@ const userPosts = ref([])
 const showDetail = ref(false)
 const selectedPost = ref(null)
 const detailComments = ref([])
+const currentUser = ref(null)
 
 // 检查登录状态
 function checkLoginStatus() {
   const token = localStorage.getItem('token')
   const user = localStorage.getItem('user')
   isLoggedIn.value = !!(token && user)
+  if (user) {
+    currentUser.value = JSON.parse(user)
+  }
 }
 
 // 获取用户动态
@@ -218,7 +223,10 @@ function likePost(postId) {
 
 // 评论动态
 function commentPost(postId) {
-  router.push(`/dynamic-detail/${postId}`)
+  const post = userPosts.value.find(p => p.id === postId)
+  if (post) {
+    openDetail(post)
+  }
 }
 
 // 编辑动态
@@ -291,7 +299,8 @@ function openDetail(post) {
   selectedPost.value = post
   // 模拟评论
   detailComments.value = [
-    { author: '我', text: '这是我的动态评论', time: '1小时前' }
+    { author: '我', text: '这是我的动态评论', time: '1小时前' },
+    { author: '用户A', text: '支持一下！', time: '30分钟前' }
   ]
   showDetail.value = true
 }
@@ -301,7 +310,7 @@ function closeDetail() {
 }
 
 function onSubmitComment(comment) {
-  detailComments.value.push({ author: '你', text: comment, time: '刚刚' })
+  detailComments.value.push({ author: currentUser.value?.username || '你', text: comment, time: '刚刚' })
 }
 
 function onDeleteComment(index) {

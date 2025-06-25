@@ -9,7 +9,6 @@ import Favorites from '@/pages/home/Favorites.vue'
 import Chart from '@/pages/home/Chart.vue'
 import SquarePage from '@/pages/post/SquarePage.vue'
 import Dynamic from '@/pages/Dynamic.vue'
-import DynamicDetailPage from '@/pages/post/DynamicDetailPage.vue'
 import PostDynamicPage from '@/pages/post/PostDynamicPage.vue'
 import Auth from '@/pages/Auth.vue'
 import Admin from '@/pages/admin/Admin.vue'
@@ -32,7 +31,6 @@ const routes = [
   { path: '/chart', name: 'Chart', component: Chart },
   { path: '/square', name: 'Square', component: SquarePage },
   { path: '/my-dynamic', name: 'MyDynamic', component: Dynamic },
-  { path: '/dynamic-detail/:id', name: 'DynamicDetail', component: DynamicDetailPage },
   { path: '/post/create', name: 'PostCreate', component: PostDynamicPage },
   { path: '/auth', name: 'Auth', component: Auth },
   { path: '/product/:id', name: 'ProductDetail', component: ProductDetailPage },
