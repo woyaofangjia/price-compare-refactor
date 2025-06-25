@@ -16,7 +16,7 @@
               </div>
               <div class="alert-setting">
                 <span>提醒价：</span>
-                <input type="number" v-model="item.alertPrice" style="width: 100px;" />
+                <input type="number" v-model="item.alertPrice" style="width: 100px;" @click.stop />
                 <span>元时通知我</span>
               </div>
             </div>
