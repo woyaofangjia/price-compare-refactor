@@ -4,10 +4,6 @@
       <div class="section-header">
         <h2 class="section-title">商品管理</h2>
         <div class="section-actions">
-          <div class="search-box">
-            <input type="text" v-model="searchTerm" placeholder="搜索商品...">
-            <button><i class="fas fa-search"></i></button>
-          </div>
           <button class="btn btn-primary">添加商品</button>
         </div>
       </div>

@@ -5,13 +5,23 @@
       <li :class="{active: $route.path === '/admin/products'}" @click="$router.push('/admin/products')">
         <i class="fas fa-shopping-bag"></i> 商品管理
       </li>
+      <li :class="{active: $route.path === '/admin/brands'}" @click="$router.push('/admin/brands')">
+        <i class="fas fa-tags"></i> 品牌管理
+      </li>
       <li :class="{active: $route.path === '/admin/posts'}" @click="$router.push('/admin/posts')">
         <i class="fas fa-comments"></i> 动态管理
+      </li>
+      <li :class="{active: $route.path === '/admin/users'}" @click="$router.push('/admin/users')">
+        <i class="fas fa-users"></i> 用户管理
       </li>
       <li :class="{active: $route.path === '/admin/charts'}" @click="$router.push('/admin/charts')">
         <i class="fas fa-chart-pie"></i> 图表分析
       </li>
     </ul>
+    <div class="admin-search" v-if="isAdminModule">
+      <input type="text" placeholder="搜索" v-model="searchValue" />
+      <button class="search-btn"><i class="fas fa-search"></i></button>
+    </div>
     <div class="admin-actions">
       <div class="admin-user" @click="toggleDropdown">
         <div class="admin-avatar">A</div>
@@ -44,7 +54,20 @@ export default {
   data() {
     return {
       showDropdown: false,
-      title: '管理员控制台'
+      title: '管理员控制台',
+      searchValue: ''
+    }
+  },
+  computed: {
+    isAdminModule() {
+      const adminPaths = [
+        '/admin/products',
+        '/admin/brands',
+        '/admin/posts',
+        '/admin/users',
+        '/admin/charts'
+      ];
+      return adminPaths.includes(this.$route.path);
     }
   },
   watch: {
@@ -75,7 +98,9 @@ export default {
     updateTitle() {
       const routeMap = {
         '/admin/products': '商品管理',
+        '/admin/brands': '品牌管理',
         '/admin/posts': '动态管理',
+        '/admin/users': '用户管理',
         '/admin/charts': '图表分析'
       }
       this.title = routeMap[this.$route.path] || '管理员控制台'
@@ -127,6 +152,31 @@ export default {
 }
 .admin-nav li i {
   margin-right: 6px;
+}
+
+.admin-search {
+  display: flex;
+  align-items: center;
+  margin: 0 20px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 4px 10px;
+}
+.admin-search input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 1rem;
+  padding: 6px 8px;
+  min-width: 160px;
+}
+.search-btn {
+  background: transparent;
+  border: none;
+  color: #4361ee;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px 8px;
 }
 
 .admin-actions {

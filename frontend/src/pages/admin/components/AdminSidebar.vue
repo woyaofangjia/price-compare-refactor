@@ -8,10 +8,6 @@
     </div>
     
     <ul class="admin-menu">
-      <li class="menu-item" :class="{active: $route.path === '/admin/dashboard'}" @click="$router.push('/admin/dashboard')">
-        <i class="fas fa-tachometer-alt"></i>
-        <span class="menu-text">控制面板</span>
-      </li>
       <li class="menu-item" :class="{active: $route.path === '/admin/users'}" @click="$router.push('/admin/users')">
         <i class="fas fa-users"></i>
         <span class="menu-text">用户管理</span>
@@ -20,6 +16,10 @@
         <i class="fas fa-shopping-bag"></i>
         <span class="menu-text">商品管理</span>
       </li>
+      <li class="menu-item" :class="{active: $route.path === '/admin/brands'}" @click="$router.push('/admin/brands')">
+        <i class="fas fa-tags"></i>
+        <span class="menu-text">品牌管理</span>
+      </li>
       <li class="menu-item" :class="{active: $route.path === '/admin/posts'}" @click="$router.push('/admin/posts')">
         <i class="fas fa-comments"></i>
         <span class="menu-text">动态管理</span>
@@ -27,10 +27,6 @@
       <li class="menu-item" :class="{active: $route.path === '/admin/charts'}" @click="$router.push('/admin/charts')">
         <i class="fas fa-chart-pie"></i>
         <span class="menu-text">图表分析</span>
-      </li>
-      <li class="menu-item" :class="{active: $route.path === '/admin/settings'}" @click="$router.push('/admin/settings')">
-        <i class="fas fa-cog"></i>
-        <span class="menu-text">系统设置</span>
       </li>
     </ul>
   </div>

@@ -38,7 +38,9 @@ const routes = [
     children: [
       { path: '', redirect: '/admin/products' },
       { path: 'products', component: Products },
+      { path: 'brands', component: () => import('@/pages/admin/Brands.vue') },
       { path: 'posts', component: Posts },
+      { path: 'users', component: () => import('@/pages/admin/Users.vue') },
       { path: 'posts/:id', component: PostDetail },
       { path: 'charts', component: Charts }
     ]
