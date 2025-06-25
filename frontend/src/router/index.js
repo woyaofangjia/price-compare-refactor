@@ -12,12 +12,10 @@ import Dynamic from '@/pages/Dynamic.vue'
 import PostDynamicPage from '@/pages/post/PostDynamicPage.vue'
 import Auth from '@/pages/Auth.vue'
 import Admin from '@/pages/admin/Admin.vue'
-import Dashboard from '@/pages/admin/Dashboard.vue'
-import Users from '@/pages/admin/Users.vue'
 import Products from '@/pages/admin/Products.vue'
 import Posts from '@/pages/admin/Posts.vue'
+import PostDetail from '@/pages/admin/PostDetail.vue'
 import Charts from '@/pages/admin/Charts.vue'
-import Settings from '@/pages/admin/Settings.vue'
 import ProductDetailPage from '@/pages/ProductDetailPage.vue'
 
 const routes = [
@@ -34,17 +32,15 @@ const routes = [
   { path: '/post/create', name: 'PostCreate', component: PostDynamicPage },
   { path: '/auth', name: 'Auth', component: Auth },
   { path: '/product/:id', name: 'ProductDetail', component: ProductDetailPage },
-    {
+  {
     path: '/admin',
     component: Admin,
     children: [
-      { path: '', redirect: '/admin/dashboard' },
-      { path: 'dashboard', component: Dashboard },
-      { path: 'users', component: Users },
+      { path: '', redirect: '/admin/products' },
       { path: 'products', component: Products },
       { path: 'posts', component: Posts },
-      { path: 'charts', component: Charts },
-      { path: 'settings', component: Settings }
+      { path: 'posts/:id', component: PostDetail },
+      { path: 'charts', component: Charts }
     ]
   }
 ]

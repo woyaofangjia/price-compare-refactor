@@ -38,6 +38,11 @@
               <i class="fas fa-share"></i>
               <span>{{ post.shares }}</span>
             </div>
+            <div class="post-action">
+              <button class="btn btn-primary btn-sm" @click="viewDetail(post.id)">
+                <i class="fas fa-eye"></i> 查看详情
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -98,11 +103,114 @@ export default {
         }
       ]
     }
+  },
+  methods: {
+    viewDetail(postId) {
+      this.$router.push(`/admin/posts/${postId}`)
+    }
   }
 }
 </script>
 
 <style scoped>
+.content-page {
+  padding: 20px;
+}
+
+.content-section {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  overflow: hidden;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  border-bottom: 1px solid var(--light-gray);
+}
+
+.section-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.section-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--light-gray);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.search-box input {
+  padding: 8px 12px;
+  border: none;
+  outline: none;
+  font-size: 0.9rem;
+  min-width: 200px;
+}
+
+.search-box button {
+  padding: 8px 12px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--light-gray);
+  color: var(--gray);
+}
+
+.btn-outline:hover {
+  background: var(--light);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+}
+
+.btn-sm {
+  padding: 4px 8px;
+  font-size: 0.8rem;
+}
+
+.posts-container {
+  padding: 25px;
+}
+
 .post-card {
   background: #f9fafc;
   border-radius: 12px;
@@ -161,6 +269,7 @@ export default {
   gap: 15px;
   border-top: 1px solid var(--light-gray);
   padding-top: 15px;
+  align-items: center;
 }
 
 .post-action {
@@ -177,5 +286,33 @@ export default {
 
 .post-action i {
   margin-right: 5px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px;
+  border-top: 1px solid var(--light-gray);
+}
+
+.page-item {
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid var(--light-gray);
+}
+
+.page-item:hover {
+  background: var(--light);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.page-item.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
 }
 </style>

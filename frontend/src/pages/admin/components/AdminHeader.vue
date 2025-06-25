@@ -2,12 +2,6 @@
   <div class="admin-header">
     <div class="admin-title">{{ title }}</div>
     <ul class="admin-nav">
-      <li :class="{active: $route.path === '/admin/dashboard'}" @click="$router.push('/admin/dashboard')">
-        <i class="fas fa-tachometer-alt"></i> 控制面板
-      </li>
-      <li :class="{active: $route.path === '/admin/users'}" @click="$router.push('/admin/users')">
-        <i class="fas fa-users"></i> 用户管理
-      </li>
       <li :class="{active: $route.path === '/admin/products'}" @click="$router.push('/admin/products')">
         <i class="fas fa-shopping-bag"></i> 商品管理
       </li>
@@ -17,15 +11,8 @@
       <li :class="{active: $route.path === '/admin/charts'}" @click="$router.push('/admin/charts')">
         <i class="fas fa-chart-pie"></i> 图表分析
       </li>
-      <li :class="{active: $route.path === '/admin/settings'}" @click="$router.push('/admin/settings')">
-        <i class="fas fa-cog"></i> 系统设置
-      </li>
     </ul>
     <div class="admin-actions">
-      <div class="notification-badge">
-        <i class="fas fa-bell"></i>
-        <span class="notification-count">3</span>
-      </div>
       <div class="admin-user" @click="toggleDropdown">
         <div class="admin-avatar">A</div>
         <span>admin</span>
@@ -87,12 +74,9 @@ export default {
     },
     updateTitle() {
       const routeMap = {
-        '/admin/dashboard': '控制面板',
-        '/admin/users': '用户管理',
         '/admin/products': '商品管理',
         '/admin/posts': '动态管理',
-        '/admin/charts': '图表分析',
-        '/admin/settings': '系统设置'
+        '/admin/charts': '图表分析'
       }
       this.title = routeMap[this.$route.path] || '管理员控制台'
     }
@@ -168,29 +152,6 @@ export default {
   margin-right: 10px;
   color: var(--primary);
   font-weight: bold;
-}
-
-.notification-badge {
-  position: relative;
-  margin-right: 20px;
-  font-size: 1.2rem;
-  color: var(--gray);
-  cursor: pointer;
-}
-
-.notification-count {
-  position: absolute;
-  top: -5px;
-  right: -8px;
-  background: var(--warning);
-  color: white;
-  border-radius: 50%;
-  width: 18px;
-  height: 18px;
-  font-size: 0.7rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .dropdown-menu {

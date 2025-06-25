@@ -11,6 +11,16 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
+  /* CSS变量定义 */
+  --primary: #6366f1;
+  --primary-dark: #4f46e5;
+  --gray: #64748b;
+  --light-gray: #e2e8f0;
+  --light: #f8fafc;
+  --warning: #f59e0b;
+  --success: #10b981;
+  --danger: #ef4444;
 }
 
 a {
