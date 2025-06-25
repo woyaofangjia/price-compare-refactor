@@ -1,9 +1,8 @@
 <template>
   <div class="admin-container">
-    <AdminSidebar />
     <div class="admin-main">
       <AdminHeader />
-      <div class="admin-content">
+      <div class="main-container">
         <router-view />
       </div>
     </div>
@@ -11,13 +10,11 @@
 </template>
 
 <script>
-import AdminSidebar from './components/AdminSidebar.vue'
 import AdminHeader from './components/AdminHeader.vue'
 
 export default {
   name: 'Admin',
   components: {
-    AdminSidebar,
     AdminHeader
   }
 }
@@ -31,22 +28,16 @@ export default {
 
 .admin-main {
   flex: 1;
-  margin-left: 220px;
+  /* margin-left: 220px; */
   display: flex;
   flex-direction: column;
   height: 100%;
   overflow: hidden;
 }
 
-.admin-content {
+.main-container {
   flex: 1;
-  padding: 20px;
+  padding: 20px 0;
   overflow-y: auto;
-}
-
-@media (max-width: 992px) {
-  .admin-main {
-    margin-left: 70px;
-  }
 }
 </style>

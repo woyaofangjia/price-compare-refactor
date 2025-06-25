@@ -1,6 +1,6 @@
 <template>
   <section class="page-content">
-    <div class="container">
+    <div class="main-container">
       <!-- 快速入口区域 -->
       <div class="quick-access">
         <h2 class="section-title">
@@ -148,12 +148,6 @@ function goToProduct(id) {
 .page-content {
   padding: 30px 0;
   min-height: calc(100vh - 150px);
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.container {
-  padding: 0 40px;
 }
 
 /* 快速入口样式 */

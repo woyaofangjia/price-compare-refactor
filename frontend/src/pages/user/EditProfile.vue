@@ -1,5 +1,5 @@
     <template>
-      <div class="edit-profile-container">
+      <div class="main-container">
         <h1>修改个人信息</h1>
         <form @submit.prevent="saveChanges">
           <div class="form-group">
@@ -90,17 +90,13 @@
     </script>
 
     <style scoped>
-    .edit-profile-container {
+    .main-container {
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 30px;
-      background: #f8fafc;
-      max-width: 600px;
-      width: 100%;
-      margin: 0 auto;
+      padding: 30px 0;
     }
 
     h1 {

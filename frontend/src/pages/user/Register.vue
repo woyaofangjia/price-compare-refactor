@@ -1,266 +1,270 @@
-    <template>
-      <div class="page-container">
-        <div class="card">
-          <div class="card-header">
-            <h2>用户注册</h2>
-            <p>创建您的个人账户</p>
-          </div>
-          <div class="form-group">
-            <label for="username">用户名</label>
-            <div class="input-with-icon">
-              <i class="fas fa-user"></i>
-              <input type="text" id="username" v-model="form.username" placeholder="请输入用户名">
-            </div>
-            <div class="error-message" v-if="errors.username">{{ errors.username }}</div>
-          </div>
-          <div class="form-group">
-            <label for="email">邮箱</label>
-            <div class="input-with-icon">
-              <i class="fas fa-envelope"></i>
-              <input type="email" id="email" v-model="form.email" placeholder="请输入邮箱">
-            </div>
-            <div class="error-message" v-if="errors.email">{{ errors.email }}</div>
-          </div>
-          <div class="form-group">
-            <label for="password">密码</label>
-            <div class="input-with-icon">
-              <i class="fas fa-lock"></i>
-              <input type="password" id="password" v-model="form.password" placeholder="请输入密码">
-            </div>
-            <div class="error-message" v-if="errors.password">{{ errors.password }}</div>
-          </div>
-          <div class="form-group">
-            <label for="confirmPassword">确认密码</label>
-            <div class="input-with-icon">
-              <i class="fas fa-lock"></i>
-              <input type="password" id="confirmPassword" v-model="form.confirmPassword" placeholder="请再次输入密码">
-            </div>
-            <div class="error-message" v-if="errors.confirmPassword">{{ errors.confirmPassword }}</div>
-          </div>
-          <button class="btn btn-primary" @click="register">注册</button>
-          <div class="form-footer">
-            <router-link to="/" class="back-link">
-              <i class="fas fa-arrow-left"></i>
-              返回首页
-            </router-link>
-            <router-link to="/login" class="login-link">
-              已有账号？立即登录
-              <i class="fas fa-arrow-right"></i>
-            </router-link>
-          </div>
-        </div>
+<template>
+  <div class="page-container">
+    <div class="card">
+      <div class="card-header">
+        <h2>用户注册</h2>
+        <p>创建您的个人账户</p>
       </div>
-    </template>
+      <div class="form-group">
+        <label for="username">用户名</label>
+        <div class="input-with-icon">
+          <i class="fas fa-user"></i>
+          <input type="text" id="username" v-model="form.username" placeholder="请输入用户名">
+        </div>
+        <div class="error-message" v-if="errors.username">{{ errors.username }}</div>
+      </div>
+      <div class="form-group">
+        <label for="email">邮箱</label>
+        <div class="input-with-icon">
+          <i class="fas fa-envelope"></i>
+          <input type="email" id="email" v-model="form.email" placeholder="请输入邮箱">
+        </div>
+        <div class="error-message" v-if="errors.email">{{ errors.email }}</div>
+      </div>
+      <div class="form-group">
+        <label for="password">密码</label>
+        <div class="input-with-icon">
+          <i class="fas fa-lock"></i>
+          <input type="password" id="password" v-model="form.password" placeholder="请输入密码">
+        </div>
+        <div class="error-message" v-if="errors.password">{{ errors.password }}</div>
+      </div>
+      <div class="form-group">
+        <label for="confirmPassword">确认密码</label>
+        <div class="input-with-icon">
+          <i class="fas fa-lock"></i>
+          <input type="password" id="confirmPassword" v-model="form.confirmPassword" placeholder="请再次输入密码">
+        </div>
+        <div class="error-message" v-if="errors.confirmPassword">{{ errors.confirmPassword }}</div>
+      </div>
+      <button class="btn btn-primary" @click="register">注册</button>
+      <div class="form-footer">
+        <router-link to="/" class="back-link">
+          <i class="fas fa-arrow-left"></i>
+          返回首页
+        </router-link>
+        <router-link to="/login" class="login-link">
+          已有账号？立即登录
+          <i class="fas fa-arrow-right"></i>
+        </router-link>
+      </div>
+    </div>
+  </div>
+</template>
 
-    <script setup>
-    import { reactive, inject } from 'vue'
-    import { useRouter } from 'vue-router'
-    const form = reactive({ username: '', email: '', password: '', confirmPassword: '' })
-    const errors = reactive({ username: '', email: '', password: '', confirmPassword: '' })
-    const router = useRouter()
-    const store = inject('store')
+<script setup>
+import { reactive, inject } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
 
-    function validateForm() {
-      let isValid = true
-      errors.username = ''
-      errors.email = ''
-      errors.password = ''
-      errors.confirmPassword = ''
-      if (!form.username.trim()) {
-        errors.username = '请输入用户名'
-        isValid = false
+const form = reactive({ username: '', email: '', password: '', confirmPassword: '' })
+const errors = reactive({ username: '', email: '', password: '', confirmPassword: '' })
+const router = useRouter()
+const store = inject('store')
+
+function validateForm() {
+  let isValid = true
+  errors.username = ''
+  errors.email = ''
+  errors.password = ''
+  errors.confirmPassword = ''
+  if (!form.username.trim()) {
+    errors.username = '请输入用户名'
+    isValid = false
+  }
+  if (!form.email.trim()) {
+    errors.email = '请输入邮箱'
+    isValid = false
+  } else if (!/^\S+@\S+\.\S+$/.test(form.email)) {
+    errors.email = '请输入有效的邮箱地址'
+    isValid = false
+  }
+  if (!form.password) {
+    errors.password = '请输入密码'
+    isValid = false
+  } else if (form.password.length < 6) {
+    errors.password = '密码长度至少为6位'
+    isValid = false
+  }
+  if (form.password !== form.confirmPassword) {
+    errors.confirmPassword = '两次输入的密码不一致'
+    isValid = false
+  }
+  return isValid
+}
+
+function register() {
+  if (validateForm()) {
+    axios.post('/api/register', {
+      username: form.username,
+      email: form.email,
+      password: form.password
+    }).then(res => {
+      if (res.data.code === 0) {
+        const userData = res.data.data.user
+        const token = res.data.data.token
+        localStorage.setItem('token', token)
+        localStorage.setItem('user', JSON.stringify(userData))
+        window.dispatchEvent(new Event('loginStatusChanged'))
+        if (store) {
+          store.login(userData)
+          store.showNotification('注册成功！', 'success')
+        }
+        router.push('/profile')
+      } else {
+        errors.password = res.data.message || '注册失败'
+        if (store) store.showNotification(errors.password, 'error')
       }
-      if (!form.email.trim()) {
-        errors.email = '请输入邮箱'
-        isValid = false
-      } else if (!/^\S+@\S+\.\S+$/.test(form.email)) {
-        errors.email = '请输入有效的邮箱地址'
-        isValid = false
-      }
-      if (!form.password) {
-        errors.password = '请输入密码'
-        isValid = false
-      } else if (form.password.length < 6) {
-        errors.password = '密码长度至少为6位'
-        isValid = false
-      }
-      if (form.password !== form.confirmPassword) {
-        errors.confirmPassword = '两次输入的密码不一致'
-        isValid = false
-      }
-      return isValid
-    }
-    function register() {
-      if (validateForm()) {
-        setTimeout(() => {
-          // 设置登录状态到localStorage
-          const userData = {
-            id: 2,
-            username: form.username,
-            email: form.email,
-            phone: '13900139000',
-            joinDate: new Date().toISOString().split('T')[0]
-          }
-          localStorage.setItem('token', 'mock-token-' + Date.now())
-          localStorage.setItem('user', JSON.stringify(userData))
-          
-          // 触发自定义事件通知导航栏更新状态
-          window.dispatchEvent(new Event('loginStatusChanged'))
-          
-          // 如果store存在，也更新store
-          if (store) {
-            store.login(userData)
-            store.showNotification('注册成功！', 'success')
-          }
-          
-          router.push('/profile')
-        }, 500)
-      }
-    }
-    </script>
+    }).catch(() => {
+      errors.password = '网络错误，请稍后重试'
+      if (store) store.showNotification(errors.password, 'error')
+    })
+  }
+}
+</script>
 
-    <style scoped>
-    .page-container {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
+<style scoped>
+.page-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
 
-    .card {
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 4px 24px 0 rgba(34, 51, 84, 0.12);
-      padding: 40px;
-      width: 100%;
-      max-width: 360px;
-    }
+.card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px 0 rgba(34, 51, 84, 0.12);
+  padding: 40px;
+  width: 100%;
+  max-width: 360px;
+}
 
-    .card-header {
-      text-align: center;
-      margin-bottom: 32px;
-    }
+.card-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
 
-    .card-header h2 {
-      color: #1e293b;
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
+.card-header h2 {
+  color: #1e293b;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
 
-    .card-header p {
-      color: #64748b;
-      font-size: 1rem;
-    }
+.card-header p {
+  color: #64748b;
+  font-size: 1rem;
+}
 
-    .form-group {
-      margin-bottom: 24px;
-    }
+.form-group {
+  margin-bottom: 24px;
+}
 
-    .form-group label {
-      display: block;
-      margin-bottom: 8px;
-      color: #475569;
-      font-size: 0.95rem;
-      font-weight: 500;
-    }
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #475569;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
 
-    .input-with-icon {
-      position: relative;
-    }
+.input-with-icon {
+  position: relative;
+}
 
-    .input-with-icon i {
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #94a3b8;
-      font-size: 1.1rem;
-    }
+.input-with-icon i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 1.1rem;
+}
 
-    .input-with-icon input {
-      width: 80%;
-      padding: 12px 12px 12px 40px;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      font-size: 1rem;
-      color: #1e293b;
-      transition: all 0.3s ease;
-      background: #f8fafc;
-    }
+.input-with-icon input {
+  width: 80%;
+  padding: 12px 12px 12px 40px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  color: #1e293b;
+  transition: all 0.3s ease;
+  background: #f8fafc;
+}
 
-    .input-with-icon input:focus {
-      outline: none;
-      border-color: #6366f1;
-      background: #fff;
-      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-    }
+.input-with-icon input:focus {
+  outline: none;
+  border-color: #6366f1;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
 
-    .error-message {
-      color: #ef4444;
-      font-size: 0.875rem;
-      margin-top: 6px;
-    }
+.error-message {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 6px;
+}
 
-    .btn-primary {
-      width: 100%;
-      padding: 12px;
-      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
+.btn-primary {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
 
-    .btn-primary:hover {
-      background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-    }
+.btn-primary:hover {
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
 
-    .form-footer {
-      margin-top: 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.95rem;
-      gap: 20px;
-    }
+.form-footer {
+  margin-top: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+  gap: 20px;
+}
 
-    .back-link, .login-link {
-      color: #6366f1;
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: color 0.3s ease;
-      white-space: nowrap;
-    }
+.back-link, .login-link {
+  color: #6366f1;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.3s ease;
+  white-space: nowrap;
+}
 
-    .back-link:hover, .login-link:hover {
-      color: #4f46e5;
-    }
+.back-link:hover, .login-link:hover {
+  color: #4f46e5;
+}
 
-    @media (max-width: 480px) {
-      .card {
-        padding: 24px;
-      }
-      
-      .form-footer {
-        flex-direction: column;
-        gap: 16px;
-        text-align: center;
-        align-items: center;
-      }
-      
-      .back-link, .login-link {
-        justify-content: center;
-        width: auto;
-      }
-    }
-    </style>
+@media (max-width: 480px) {
+  .card {
+    padding: 24px;
+  }
+  
+  .form-footer {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+    align-items: center;
+  }
+  
+  .back-link, .login-link {
+    justify-content: center;
+    width: auto;
+  }
+}
+</style>
   
