@@ -14,12 +14,23 @@
         <div class="error-message" v-if="errors.username">{{ errors.username }}</div>
       </div>
       <div class="form-group">
-        <label for="email">邮箱</label>
+        <label for="phone">手机号</label>
         <div class="input-with-icon">
-          <i class="fas fa-envelope"></i>
-          <input type="email" id="email" v-model="form.email" placeholder="请输入邮箱">
+          <i class="fas fa-mobile-alt"></i>
+          <input type="text" id="phone" v-model="form.phone" placeholder="请输入手机号">
         </div>
-        <div class="error-message" v-if="errors.email">{{ errors.email }}</div>
+        <div class="error-message" v-if="errors.phone">{{ errors.phone }}</div>
+      </div>
+      <div class="form-group">
+        <label for="code">验证码</label>
+        <div class="input-with-icon" style="display: flex; align-items: center;">
+          <i class="fas fa-key"></i>
+          <input type="text" id="code" v-model="form.code" placeholder="请输入验证码" style="flex:1;">
+          <button class="btn btn-outline" style="margin-left:10px;" @click="sendCode" :disabled="countdown > 0">
+            {{ countdown > 0 ? countdown + 's后重试' : '获取验证码' }}
+          </button>
+        </div>
+        <div class="error-message" v-if="errors.code">{{ errors.code }}</div>
       </div>
       <div class="form-group">
         <label for="password">密码</label>
@@ -53,30 +64,37 @@
 </template>
 
 <script setup>
-import { reactive, inject } from 'vue'
+import { reactive, inject, ref, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 
-const form = reactive({ username: '', email: '', password: '', confirmPassword: '' })
-const errors = reactive({ username: '', email: '', password: '', confirmPassword: '' })
+const form = reactive({ username: '', phone: '', code: '', password: '', confirmPassword: '' })
+const errors = reactive({ username: '', phone: '', code: '', password: '', confirmPassword: '' })
 const router = useRouter()
 const store = inject('store')
+const countdown = ref(0)
+let timer = null
 
 function validateForm() {
   let isValid = true
   errors.username = ''
-  errors.email = ''
+  errors.phone = ''
+  errors.code = ''
   errors.password = ''
   errors.confirmPassword = ''
   if (!form.username.trim()) {
     errors.username = '请输入用户名'
     isValid = false
   }
-  if (!form.email.trim()) {
-    errors.email = '请输入邮箱'
+  if (!form.phone.trim()) {
+    errors.phone = '请输入手机号'
     isValid = false
-  } else if (!/^\S+@\S+\.\S+$/.test(form.email)) {
-    errors.email = '请输入有效的邮箱地址'
+  } else if (!/^1[3-9]\d{9}$/.test(form.phone)) {
+    errors.phone = '请输入有效的手机号'
+    isValid = false
+  }
+  if (!form.code.trim()) {
+    errors.code = '请输入验证码'
     isValid = false
   }
   if (!form.password) {
@@ -93,11 +111,35 @@ function validateForm() {
   return isValid
 }
 
+function sendCode() {
+  if (!/^1[3-9]\d{9}$/.test(form.phone)) {
+    errors.phone = '请输入有效的手机号'
+    return
+  }
+  if (countdown.value > 0) return // 倒计时中禁止重复点击
+  // 这里调用后端发送验证码API
+  // axios.post('/api/send-code', { phone: form.phone }) ...
+  if (store) store.showNotification('验证码已发送（模拟）', 'success')
+  countdown.value = 60
+  timer = setInterval(() => {
+    countdown.value--
+    if (countdown.value <= 0) {
+      clearInterval(timer)
+      timer = null
+    }
+  }, 1000)
+}
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
+})
+
 function register() {
   if (validateForm()) {
     axios.post('/api/register', {
       username: form.username,
-      email: form.email,
+      phone: form.phone,
+      code: form.code,
       password: form.password
     }).then(res => {
       if (res.data.code === 0) {
