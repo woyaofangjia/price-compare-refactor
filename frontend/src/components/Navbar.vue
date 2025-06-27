@@ -8,14 +8,38 @@
         <input type="text" placeholder="搜索商品..." />
         <button><i class="fas fa-search"></i></button>
       </div>
+      <!-- 管理员后台入口，仅管理员可见 -->
+      <router-link
+        v-if="isadmin"
+        to="/admin"
+        class="admin-link"
+        style="margin-left: 30px; color: #fff; font-weight: bold;"
+      >
+        <i class="fas fa-cogs"></i> 管理员后台
+      </router-link>
     </div>
   </nav>
 </template>
 
 <script setup>
 import { useRoute } from 'vue-router'
+import { ref, onMounted } from 'vue'
 const route = useRoute()
 const hideSearchOn = ['/profile', '/login', '/register', '/profile/edit']
+
+const isadmin = ref(false)
+
+function checkAdmin() {
+  const user = JSON.parse(localStorage.getItem('user') || '{}')
+  isadmin.value = !!user && Number(user.isadmin) === 1
+  console.log('isadmin:', user.isadmin)
+}
+
+onMounted(() => {
+  checkAdmin()
+  window.addEventListener('storage', checkAdmin)
+  window.addEventListener('loginStatusChanged', checkAdmin)
+})
 </script>
 
 <style scoped>

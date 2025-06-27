@@ -64,19 +64,15 @@
 </template>
 
 <script setup>
-import { reactive, inject, ref, onUnmounted } from 'vue'
+import { reactive, ref, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 
 const form = reactive({ username: '', email: '', code: '', password: '', confirmPassword: '' })
 const errors = reactive({ username: '', email: '', code: '', password: '', confirmPassword: '' })
 const router = useRouter()
-const store = inject('store')
 const countdown = ref(0)
 let timer = null
-
-const username = ref('')
-const password = ref('')
 
 function validateForm() {
   let isValid = true
@@ -122,7 +118,6 @@ function sendCode() {
   if (countdown.value > 0) return // 倒计时中禁止重复点击
   // 这里调用后端发送验证码API
   // axios.post('/api/send-code', { email: form.email }) ...
-  if (store) store.showNotification('验证码已发送（模拟）', 'success')
   countdown.value = 60
   timer = setInterval(() => {
     countdown.value--
@@ -144,7 +139,6 @@ function register() {
     email: form.email
   })
     .then(res => {
-      // 注册成功后跳转到登录页
       router.push('/login')
     })
     .catch(err => {

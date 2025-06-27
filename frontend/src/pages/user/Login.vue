@@ -37,18 +37,13 @@
 </template>
 
 <script setup>
-import { reactive, inject } from 'vue'
+import { reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
-import { ref } from 'vue'
 
 const form = reactive({ username: '', password: '' })
 const errors = reactive({ username: '', password: '' })
 const router = useRouter()
-const store = inject('store')
-
-const username = ref('')
-const password = ref('')
 
 function validateForm() {
   let isValid = true
@@ -71,7 +66,9 @@ function validateForm() {
 function login() {
   axios.post('/api/auth/login', { username: form.username, password: form.password })
     .then(res => {
-      // 登录成功逻辑，如保存 token、跳转页面等
+      localStorage.setItem('token', res.data.token)
+      localStorage.setItem('user', JSON.stringify(res.data.user))
+      window.dispatchEvent(new Event('loginStatusChanged'))
       router.push('/')
     })
     .catch(err => {
