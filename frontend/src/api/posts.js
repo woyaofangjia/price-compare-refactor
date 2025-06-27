@@ -71,9 +71,9 @@ export const postsAPI = {
     return api.post(`/posts/${id}/collect`)
   },
 
-  // 获取热门动态
-  getTrendingPosts() {
-    return api.get('/posts/trending')
+  // 获取推荐动态
+  getRecommendPosts(userId) {
+    return api.get('/posts/recommend', { params: { userId } })
   },
 
   // 获取用户动态

@@ -1,7 +1,7 @@
 <template>
   <div class="card">
     <div class="card-header">
-      <div class="card-title">热门动态</div>
+      <div class="card-title">推荐动态</div>
     </div>
     <div v-if="loading" class="loading">
       <i class="fas fa-spinner fa-spin"></i>
@@ -33,18 +33,25 @@ const store = inject('store')
 const trendingPosts = ref([])
 const loading = ref(false)
 
-// 获取热门动态
+// 获取推荐动态
 async function fetchTrendingPosts() {
   try {
     loading.value = true
-    const response = await postsAPI.getTrendingPosts()
+    const user = JSON.parse(localStorage.getItem('user') || '{}')
+    const userId = user.id
+    if (!userId) {
+      if (store) store.showNotification('请先登录后再查看推荐动态', 'warning')
+      loading.value = false
+      return
+    }
+    const response = await postsAPI.getRecommendPosts(userId)
     if (response.code === 0) {
       trendingPosts.value = response.data.slice(0, 5) // 只显示前5条
     } else {
-      console.error('获取热门动态失败:', response.message)
+      console.error('获取推荐动态失败:', response.message)
     }
   } catch (error) {
-    console.error('获取热门动态失败:', error)
+    console.error('获取推荐动态失败:', error)
   } finally {
     loading.value = false
   }

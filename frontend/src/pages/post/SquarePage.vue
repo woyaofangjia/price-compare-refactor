@@ -133,11 +133,19 @@ const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
 async function fetchPosts() {
   try {
     loading.value = true
+    const user = JSON.parse(localStorage.getItem('user') || '{}')
+    const userId = user.id
+    if (!userId) {
+      if (store) store.showNotification('请先登录后再查看动态广场', 'warning')
+      loading.value = false
+      return
+    }
     const params = {
       page: currentPage.value,
       pageSize: pageSize.value,
       keyword: searchKeyword.value,
-      sort: sortType.value
+      sort: sortType.value,
+      userId
     }
     
     const response = await postsAPI.getPosts(params)
