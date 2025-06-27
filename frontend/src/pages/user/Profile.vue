@@ -27,29 +27,31 @@
         <nav class="main-nav">
           <router-link to="/" class="nav-link">首页</router-link>
           <router-link to="/profile" class="nav-link">个人中心</router-link>
-          <button @click="logout" class="logout-btn">退出</button>
         </nav>
       </div>
     </template>
 
     <script setup>
-    import axios from 'axios'
+    import { useRouter } from 'vue-router'
     import { ref, onMounted } from 'vue'
 
-    const profile = ref(null)
+    const router = useRouter()
+    const user = ref({})
 
-    function getProfile() {
-      axios.get('/api/auth/profile')
-        .then(res => {
-          profile.value = res.data
-        })
-        .catch(err => {
-          console.error('获取用户信息失败', err)
-        })
+    function getUser() {
+      const u = localStorage.getItem('user')
+      user.value = u ? JSON.parse(u) : {}
+    }
+
+    function logout() {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      window.dispatchEvent(new Event('loginStatusChanged'))
+      router.push('/login')
     }
 
     onMounted(() => {
-      getProfile()
+      getUser()
     })
     </script>
 

@@ -9,7 +9,7 @@
         <i class="fas fa-user-check"></i>
         <span>{{ isLoggedIn ? '个人中心' : '用户登录' }}</span>
       </router-link>
-      <router-link to="/admin" class="sidebar-top-link">
+      <router-link v-if="isadmin" to="/admin" class="sidebar-top-link">
         <i class="fas fa-user-cog"></i>
         <span>管理员后台</span>
       </router-link>
@@ -49,10 +49,13 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 const isLoggedIn = ref(false)
+const isadmin = ref(false)
 function checkLoginStatus() {
   const token = localStorage.getItem('token')
-  const user = localStorage.getItem('user')
-  isLoggedIn.value = !!(token && user)
+  const userStr = localStorage.getItem('user')
+  isLoggedIn.value = !!(token && userStr)
+  const user = userStr ? JSON.parse(userStr) : {}
+  isadmin.value = !!user && Number(user.isadmin) === 1
 }
 onMounted(() => {
   checkLoginStatus()
