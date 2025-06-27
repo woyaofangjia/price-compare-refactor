@@ -14,12 +14,12 @@
         <div class="error-message" v-if="errors.username">{{ errors.username }}</div>
       </div>
       <div class="form-group">
-        <label for="phone">手机号</label>
+        <label for="email">邮箱</label>
         <div class="input-with-icon">
-          <i class="fas fa-mobile-alt"></i>
-          <input type="text" id="phone" v-model="form.phone" placeholder="请输入手机号">
+          <i class="fas fa-envelope"></i>
+          <input type="email" id="email" v-model="form.email" placeholder="请输入邮箱">
         </div>
-        <div class="error-message" v-if="errors.phone">{{ errors.phone }}</div>
+        <div class="error-message" v-if="errors.email">{{ errors.email }}</div>
       </div>
       <div class="form-group">
         <label for="code">验证码</label>
@@ -67,10 +67,9 @@
 import { reactive, inject, ref, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
-import { ref } from 'vue'
 
-const form = reactive({ username: '', phone: '', code: '', password: '', confirmPassword: '' })
-const errors = reactive({ username: '', phone: '', code: '', password: '', confirmPassword: '' })
+const form = reactive({ username: '', email: '', code: '', password: '', confirmPassword: '' })
+const errors = reactive({ username: '', email: '', code: '', password: '', confirmPassword: '' })
 const router = useRouter()
 const store = inject('store')
 const countdown = ref(0)
@@ -82,7 +81,7 @@ const password = ref('')
 function validateForm() {
   let isValid = true
   errors.username = ''
-  errors.phone = ''
+  errors.email = ''
   errors.code = ''
   errors.password = ''
   errors.confirmPassword = ''
@@ -90,11 +89,11 @@ function validateForm() {
     errors.username = '请输入用户名'
     isValid = false
   }
-  if (!form.phone.trim()) {
-    errors.phone = '请输入手机号'
+  if (!form.email.trim()) {
+    errors.email = '请输入邮箱'
     isValid = false
-  } else if (!/^1[3-9]\d{9}$/.test(form.phone)) {
-    errors.phone = '请输入有效的手机号'
+  } else if (!/^\S+@\S+\.\S+$/.test(form.email)) {
+    errors.email = '请输入有效的邮箱地址'
     isValid = false
   }
   if (!form.code.trim()) {
@@ -116,13 +115,13 @@ function validateForm() {
 }
 
 function sendCode() {
-  if (!/^1[3-9]\d{9}$/.test(form.phone)) {
-    errors.phone = '请输入有效的手机号'
+  if (!/^\S+@\S+\.\S+$/.test(form.email)) {
+    errors.email = '请输入有效的邮箱地址'
     return
   }
   if (countdown.value > 0) return // 倒计时中禁止重复点击
   // 这里调用后端发送验证码API
-  // axios.post('/api/send-code', { phone: form.phone }) ...
+  // axios.post('/api/send-code', { email: form.email }) ...
   if (store) store.showNotification('验证码已发送（模拟）', 'success')
   countdown.value = 60
   timer = setInterval(() => {
