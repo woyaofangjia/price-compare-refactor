@@ -56,8 +56,14 @@ watch(selectedId, (id) => {
 })
 
 async function fetchChartData(id) {
+  if (!id) return
   const res = await fetch(`/api/products/${id}/chart-data`)
   const data = await res.json()
+  console.log('chart-data:', data)
+  if (!data.platformData || !data.monthlyData) {
+    alert('暂无图表数据')
+    return
+  }
   comparisonData.value = data.platformData
   monthlyData.value = data.monthlyData
   renderCharts()

@@ -4,9 +4,9 @@
       <h2 class="section-title">我的收藏夹</h2>
       <div class="favorites-container">
         <div class="favorites-grid">
-          <div class="favorite-item" v-for="item in favorites" :key="item.id" @click="goToProduct(item.id)" style="cursor:pointer;">
+          <div class="favorite-item" v-for="item in favorites" :key="item.id">
             <div class="favorite-image">
-              <img :src="item.img" :alt="item.title" />
+              <img :src="item.img || item.image || defaultImg" :alt="item.title" @error="onImgError" />
             </div>
             <div class="favorite-info">
               <h3>{{ item.title }}</h3>
@@ -19,6 +19,7 @@
                 <input type="number" v-model="item.alertPrice" style="width: 100px;" @click.stop />
                 <span>元时通知我</span>
               </div>
+              <button class="btn btn-outline" @click.stop="removeFromFavorites(item.id)">取消收藏</button>
             </div>
           </div>
         </div>
@@ -33,14 +34,42 @@ import { useRouter } from 'vue-router'
 
 const favorites = ref([])
 const router = useRouter()
+const user = JSON.parse(localStorage.getItem('user') || '{}')
+const userId = user && user.id
+const defaultImg = '/default-product.png'
+function onImgError(e) {
+  e.target.src = defaultImg
+}
 
-onMounted(async () => {
-  const res = await fetch('/api/favorites')
+async function fetchFavorites() {
+  console.log('favorites:', favorites.value)
+  if (!userId) {
+    router.push('/login')
+    return
+  }
+  const res = await fetch(`/api/favorites?userId=${userId}`)
   favorites.value = await res.json()
-})
+}
+
+onMounted(fetchFavorites)
 
 function goToProduct(id) {
   router.push(`/product/${id}`)
+}
+
+async function removeFromFavorites(favoriteId) {
+  if (!favoriteId) {
+    alert('参数有误')
+    return
+  }
+  const res = await fetch(`/api/favorites/${favoriteId}`, { method: 'DELETE' })
+  if (res.ok) {
+    await fetchFavorites()
+    alert('已取消收藏')
+  } else {
+    const data = await res.json()
+    alert(data.message || '取消收藏失败')
+  }
 }
 </script>
 
@@ -62,13 +91,14 @@ function goToProduct(id) {
   box-shadow: 0 5px 15px rgba(0,0,0,0.05);
 }
 .favorites-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
   margin-top: 20px;
 }
 .favorite-item {
   display: flex;
+  align-items: center;
   padding: 15px 0;
   border-bottom: 1px solid var(--light-gray);
 }
@@ -81,9 +111,16 @@ function goToProduct(id) {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+}
+.favorite-image img {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
 }
 .favorite-info {
   flex: 1;
+  min-width: 0;
 }
 .favorite-price {
   color: var(--warning);
@@ -117,15 +154,25 @@ function goToProduct(id) {
   border-radius: 5px;
   margin: 0 10px;
 }
-
+.btn {
+  margin-top: 10px;
+}
 @media (max-width: 1200px) {
   .favorites-grid {
-    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
 }
 @media (max-width: 700px) {
   .favorites-grid {
-    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+  .favorite-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .favorite-image {
+    margin-bottom: 10px;
+    margin-right: 0;
   }
 }
 </style>

@@ -50,7 +50,7 @@
       <div class="products-grid">
         <div class="product-card" v-for="item in hotProducts" :key="item.id" @click="goToProduct(item.id)" style="cursor:pointer;">
           <div class="product-image">
-            <img :src="item.img" :alt="item.title" />
+            <img :src="item.img || item.image || defaultImg" :alt="item.title" @error="onImgError" />
           </div>
           <div class="product-info">
             <div class="product-title">{{ item.title }}</div>
@@ -66,9 +66,9 @@
       </div>
       <h2 class="section-title" style="margin-top: 40px;">近期降价商品</h2>
       <div class="products-grid">
-        <div class="product-card" v-for="item in dropProducts" :key="item.id">
+        <div class="product-card" v-for="item in dropProducts" :key="item.id" @click="goToProduct(item.id)" style="cursor:pointer;">
           <div class="product-image">
-            <img :src="item.img" :alt="item.title" />
+            <img :src="item.img || item.image || defaultImg" :alt="item.title" @error="onImgError" />
           </div>
           <div class="product-info">
             <div class="product-title">{{ item.title }}</div>
@@ -91,6 +91,7 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const hotProducts = ref([])
 const dropProducts = ref([])
+const defaultImg = '/default-product.png'
 
 onMounted(async () => {
   // 热门商品
@@ -104,6 +105,10 @@ onMounted(async () => {
 
 function goToProduct(id) {
   router.push(`/product/${id}`)
+}
+
+function onImgError(e) {
+  e.target.src = defaultImg
 }
 </script>
 
