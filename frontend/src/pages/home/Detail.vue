@@ -1,7 +1,7 @@
 <template>
   <section class="page-content">
     <div class="container">
-      <div class="product-detail">
+      <div class="product-detail" v-if="product">
         <div class="detail-image">
           <img :src="product.img" :alt="product.title" />
         </div>
@@ -12,7 +12,7 @@
           <div class="price-change price-down">较上月 {{ product.priceChange }}%</div>
           <div class="price-comparison">
             <h3>平台比价</h3>
-            <div class="platform-price" v-for="p in product.platformPrices" :key="p.platform">
+            <div class="platform-price" v-for="p in platformPrices" :key="p.platform">
               <span>{{ p.platform }}</span>
               <span :class="{'lowest-price': p.lowest}">{{ p.price }}</span>
             </div>
@@ -35,34 +35,39 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
-let product = {
-  img: 'https://via.placeholder.com/400x400?text=商品大图',
-  title: '某品牌旗舰手机 8GB+256GB 全网通',
-  desc: '型号：SM-X9000 | 颜色：曜夜黑',
-  price: '￥3,299',
-  priceChange: -5.2,
-  platformPrices: [
-    { platform: '京东自营', price: '￥3,299', lowest: true },
-    { platform: '天猫官方旗舰', price: '￥3,399' },
-    { platform: '拼多多百亿补贴', price: '￥3,199' },
-    { platform: '苏宁易购', price: '￥3,349' }
-  ]
-}
-function addToFavorites() {
-  alert('商品已加入收藏夹！')
-}
-onMounted(() => {
-  // Chart.js 绘制价格历史折线图
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+const product = ref(null)
+const platformPrices = ref([])
+const priceHistory = ref([])
+
+onMounted(async () => {
+  const id = route.params.id
+
+  // 商品详情
+  const res = await fetch(`/api/products/${id}`)
+  product.value = await res.json()
+
+  // 平台比价
+  const platRes = await fetch(`/api/products/${id}/platform-prices`)
+  platformPrices.value = await platRes.json()
+
+  // 价格历史
+  const histRes = await fetch(`/api/products/${id}/price-history`)
+  priceHistory.value = await histRes.json()
+
+  // Chart.js 绘图部分，数据用 priceHistory.value
   if (window.Chart) {
     const ctx = document.getElementById('priceHistoryChart').getContext('2d');
     new window.Chart(ctx, {
       type: 'line',
       data: {
-        labels: ['1日', '5日', '10日', '15日', '20日', '25日', '30日'],
+        labels: priceHistory.value.map(item => item.date),
         datasets: [{
           label: '价格走势 (元)',
-          data: [3599, 3499, 3399, 3299, 3399, 3299, 3299],
+          data: priceHistory.value.map(item => item.price),
           borderColor: '#4361ee',
           backgroundColor: 'rgba(67, 97, 238, 0.1)',
           borderWidth: 3,
@@ -81,6 +86,10 @@ onMounted(() => {
     });
   }
 })
+
+function addToFavorites() {
+  alert('商品已加入收藏夹！')
+}
 </script>
 
 <style scoped>

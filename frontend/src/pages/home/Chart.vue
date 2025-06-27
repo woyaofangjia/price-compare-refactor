@@ -2,9 +2,17 @@
   <section class="page-content">
     <div class="container">
       <h2 class="section-title">商品价格趋势分析</h2>
+      <div style="margin-bottom: 20px;">
+        <label>选择商品：</label>
+        <select v-model="selectedId">
+          <option v-for="item in products" :key="item.id" :value="item.id">
+            {{ item.title }}
+          </option>
+        </select>
+      </div>
       <div class="chart-container">
         <div class="chart-header">
-          <h3>多平台价格对比 - 某品牌旗舰手机</h3>
+          <h3>多平台价格对比 - {{ selectedProductTitle }}</h3>
         </div>
         <canvas id="comparisonChart"></canvas>
       </div>
@@ -19,45 +27,63 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
-onMounted(() => {
+import { ref, onMounted, watch, computed } from 'vue'
+
+const products = ref([])
+const selectedId = ref(null)
+const comparisonData = ref({})
+const monthlyData = ref([])
+let comparisonChart = null
+let fluctuationChart = null
+
+const selectedProductTitle = computed(() => {
+  const found = products.value.find(p => p.id === selectedId.value)
+  return found ? found.title : ''
+})
+
+onMounted(async () => {
+  // 获取商品列表（可根据实际接口调整）
+  const res = await fetch('/api/products/hot')
+  products.value = await res.json()
+  if (products.value.length > 0) {
+    selectedId.value = products.value[0].id
+    await fetchChartData(selectedId.value)
+  }
+})
+
+watch(selectedId, (id) => {
+  if (id) fetchChartData(id)
+})
+
+async function fetchChartData(id) {
+  const res = await fetch(`/api/products/${id}/chart-data`)
+  const data = await res.json()
+  comparisonData.value = data.platformData
+  monthlyData.value = data.monthlyData
+  renderCharts()
+}
+
+function renderCharts() {
+  // 销毁旧图表
+  if (comparisonChart) {
+    comparisonChart.destroy()
+  }
+  if (fluctuationChart) {
+    fluctuationChart.destroy()
+  }
+  // 多平台价格对比折线图
   if (window.Chart) {
-    // 多平台价格对比折线图
     const comparisonCtx = document.getElementById('comparisonChart').getContext('2d');
-    new window.Chart(comparisonCtx, {
+    comparisonChart = new window.Chart(comparisonCtx, {
       type: 'line',
       data: {
-        labels: ['1日', '5日', '10日', '15日', '20日', '25日', '30日'],
-        datasets: [
-          {
-            label: '京东',
-            data: [3499, 3399, 3349, 3299, 3399, 3299, 3299],
-            borderColor: '#e74c3c',
-            borderWidth: 3,
-            tension: 0.3
-          },
-          {
-            label: '天猫',
-            data: [3599, 3499, 3399, 3399, 3499, 3399, 3399],
-            borderColor: '#f39c12',
-            borderWidth: 3,
-            tension: 0.3
-          },
-          {
-            label: '拼多多',
-            data: [3299, 3199, 3099, 3199, 3099, 3199, 3199],
-            borderColor: '#2ecc71',
-            borderWidth: 3,
-            tension: 0.3
-          },
-          {
-            label: '苏宁',
-            data: [3499, 3449, 3399, 3349, 3399, 3349, 3349],
-            borderColor: '#9b59b6',
-            borderWidth: 3,
-            tension: 0.3
-          }
-        ]
+        labels: (comparisonData.value['京东'] || []).map(item => item.date),
+        datasets: Object.keys(comparisonData.value).map(platform => ({
+          label: platform,
+          data: comparisonData.value[platform].map(item => item.price),
+          borderWidth: 3,
+          tension: 0.3
+        }))
       },
       options: {
         responsive: true,
@@ -67,16 +93,16 @@ onMounted(() => {
           x: { grid: { display: false } }
         }
       }
-    });
+    })
     // 历史价格波动柱状图
     const fluctuationCtx = document.getElementById('priceFluctuationChart').getContext('2d');
-    new window.Chart(fluctuationCtx, {
+    fluctuationChart = new window.Chart(fluctuationCtx, {
       type: 'bar',
       data: {
-        labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+        labels: monthlyData.value.map(item => item.month),
         datasets: [{
           label: '平均价格 (元)',
-          data: [3899, 3799, 3699, 3599, 3499, 3399, 3499, 3399, 3299, 3199, 3299, 3299],
+          data: monthlyData.value.map(item => item.avgPrice),
           backgroundColor: 'rgba(67, 97, 238, 0.7)',
           borderColor: '#4361ee',
           borderWidth: 1
@@ -90,9 +116,9 @@ onMounted(() => {
           x: { grid: { display: false } }
         }
       }
-    });
+    })
   }
-})
+}
 </script>
 
 <style scoped>

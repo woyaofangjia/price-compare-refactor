@@ -4,7 +4,7 @@
       <h1 class="page-title">
         <i class="fas fa-pen"></i> {{ isEditing ? '编辑动态' : '发布动态' }}
       </h1>
-      <router-link to="/my-dynamic">
+      <router-link to="/square">
         <button class="btn btn-outline">
           <i class="fas fa-arrow-left"></i> 返回
         </button>
@@ -38,15 +38,17 @@
         <button 
           class="btn btn-primary" 
           @click="submitPost"
-          :disabled="!content.trim()"
+          :disabled="!content.trim() || loading"
         >
-          <i class="fas fa-paper-plane"></i> 
+          <i class="fas fa-spinner fa-spin" v-if="loading"></i>
+          <i class="fas fa-paper-plane" v-else></i> 
           {{ isEditing ? '更新动态' : '发布动态' }}
         </button>
         <button 
           v-if="isEditing" 
           class="btn btn-outline" 
           @click="cancelEdit"
+          :disabled="loading"
         >
           <i class="fas fa-times"></i> 取消编辑
         </button>
@@ -56,16 +58,19 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { postsAPI, uploadAPI } from '@/api/posts.js'
 
 const router = useRouter()
 const route = useRoute()
+const store = inject('store')
 
 const content = ref('')
 const images = ref([])
 const isEditing = ref(false)
 const editPostId = ref(null)
+const loading = ref(false)
 
 // 检查是否为编辑模式
 function checkEditMode() {
@@ -78,118 +83,135 @@ function checkEditMode() {
 }
 
 // 加载要编辑的动态
-function loadPostForEdit(postId) {
-  const storedPosts = localStorage.getItem('userPosts')
-  if (storedPosts) {
-    const posts = JSON.parse(storedPosts)
-    const post = posts.find(p => p.id === postId)
-    if (post) {
+async function loadPostForEdit(postId) {
+  try {
+    loading.value = true
+    const response = await postsAPI.getPostById(postId)
+    if (response.code === 0) {
+      const post = response.data
       content.value = post.content
       images.value = post.images || []
+    } else {
+      if (store) store.showNotification('加载动态失败', 'error')
     }
+  } catch (error) {
+    console.error('加载动态失败:', error)
+    if (store) store.showNotification('加载动态失败', 'error')
+  } finally {
+    loading.value = false
   }
 }
 
-function addImage() {
-  if (images.value.length < 4) {
-    // 模拟图片上传
-    const mockImages = [
-      'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9',
-      'https://images.unsplash.com/photo-1572536147248-ac59a8abfa4b',
-      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e',
-      'https://images.unsplash.com/photo-1523275335684-37898b6baf30'
-    ]
-    const randomImage = mockImages[Math.floor(Math.random() * mockImages.length)]
-    images.value.push(randomImage)
+async function addImage() {
+  if (images.value.length >= 4) {
+    if (store) store.showNotification('最多只能上传4张图片', 'warning')
+    return
   }
+
+  // 创建文件输入元素
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = 'image/*'
+  input.multiple = false
+
+  input.onchange = async (event) => {
+    const file = event.target.files[0]
+    if (!file) return
+
+    // 验证文件大小 (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      if (store) store.showNotification('图片大小不能超过5MB', 'error')
+      return
+    }
+
+    // 验证文件类型
+    if (!file.type.startsWith('image/')) {
+      if (store) store.showNotification('请选择图片文件', 'error')
+      return
+    }
+
+    try {
+      loading.value = true
+      const user = JSON.parse(localStorage.getItem('user') || '{}')
+      const response = await uploadAPI.uploadImage(file, user.id || 1)
+      
+      if (response.data && response.data.code === 0) {
+        images.value.push(response.data.data.url)
+        if (store) store.showNotification('图片上传成功', 'success')
+      } else {
+        if (store) store.showNotification('图片上传失败', 'error')
+      }
+    } catch (error) {
+      console.error('图片上传失败:', error)
+      if (store) store.showNotification('图片上传失败', 'error')
+    } finally {
+      loading.value = false
+    }
+  }
+
+  input.click()
 }
 
 function removeImage(index) {
   images.value.splice(index, 1)
 }
 
-function submitPost() {
+async function submitPost() {
   if (!content.value.trim()) {
-    alert('请输入动态内容')
+    if (store) store.showNotification('请输入动态内容', 'warning')
     return
   }
 
-  const postData = {
-    content: content.value,
-    images: images.value,
-    time: new Date().toLocaleString('zh-CN', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
-
-  if (isEditing.value) {
-    updatePost(postData)
-  } else {
-    createPost(postData)
-  }
-}
-
-function createPost(postData) {
-  const newPost = {
-    id: Date.now(), // 使用时间戳作为ID
-    username: '我',
-    userAvatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-    time: postData.time,
-    content: postData.content,
-    images: postData.images,
-    product: {
-      name: '示例商品',
-      price: '¥999',
-      image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9',
-      platform: '京东 | 天猫'
-    },
-    likes: 0,
-    comments: 0,
-    isLiked: false
-  }
-
-  // 保存到本地存储
-  const storedPosts = localStorage.getItem('userPosts')
-  const posts = storedPosts ? JSON.parse(storedPosts) : []
-  posts.unshift(newPost) // 添加到开头
-  localStorage.setItem('userPosts', JSON.stringify(posts))
-
-  // 触发登录状态变化事件，更新其他页面的数据
-  window.dispatchEvent(new Event('loginStatusChanged'))
-
-  alert('动态发布成功！')
-  router.push('/dynamic')
-}
-
-function updatePost(postData) {
-  const storedPosts = localStorage.getItem('userPosts')
-  if (storedPosts) {
-    const posts = JSON.parse(storedPosts)
-    const postIndex = posts.findIndex(p => p.id === editPostId.value)
+  try {
+    loading.value = true
+    const user = JSON.parse(localStorage.getItem('user') || '{}')
     
-    if (postIndex !== -1) {
-      posts[postIndex].content = postData.content
-      posts[postIndex].images = postData.images
-      posts[postIndex].time = postData.time + ' (已编辑)'
-      
-      localStorage.setItem('userPosts', JSON.stringify(posts))
-      
-      // 触发登录状态变化事件
-      window.dispatchEvent(new Event('loginStatusChanged'))
-      
-      alert('动态更新成功！')
-      router.push('/dynamic')
+    // 检查用户登录状态
+    if (!user.id) {
+      if (store) store.showNotification('请先登录', 'error')
+      return
     }
+    
+    const postData = {
+      content: content.value,
+      images: images.value,
+      userId: user.id,
+      timestamp: new Date().toISOString()
+    }
+
+    // 调试信息
+    console.log('发送的数据:', postData)
+    console.log('用户信息:', user)
+
+    let response
+    if (isEditing.value) {
+      response = await postsAPI.updatePost(editPostId.value, postData)
+    } else {
+      response = await postsAPI.createPost(postData)
+    }
+
+    if (response.code === 0) {
+      if (store) {
+        store.showNotification(
+          isEditing.value ? '动态更新成功' : '动态发布成功', 
+          'success'
+        )
+      }
+      router.push('/square')
+    } else {
+      if (store) store.showNotification(response.message || '操作失败', 'error')
+    }
+  } catch (error) {
+    console.error('提交动态失败:', error)
+    if (store) store.showNotification('操作失败，请稍后重试', 'error')
+  } finally {
+    loading.value = false
   }
 }
 
 function cancelEdit() {
   if (confirm('确定要取消编辑吗？未保存的内容将丢失。')) {
-    router.push('/dynamic')
+    router.push('/square')
   }
 }
 
