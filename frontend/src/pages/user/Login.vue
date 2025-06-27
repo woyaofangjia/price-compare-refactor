@@ -40,11 +40,15 @@
 import { reactive, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { ref } from 'vue'
 
 const form = reactive({ username: '', password: '' })
 const errors = reactive({ username: '', password: '' })
 const router = useRouter()
 const store = inject('store')
+
+const username = ref('')
+const password = ref('')
 
 function validateForm() {
   let isValid = true
@@ -64,34 +68,20 @@ function validateForm() {
   return isValid
 }
 
-async function login() {
-  if (validateForm()) {
-    try {
-      // 调用后端登录接口
-      const res = await axios.post('/api/login', {
-        username: form.username,
-        password: form.password
-      })
-      if (res.data.code === 0) {
-        const userData = res.data.data.user
-        const token = res.data.data.token
-        localStorage.setItem('token', token)
-        localStorage.setItem('user', JSON.stringify(userData))
-        window.dispatchEvent(new Event('loginStatusChanged'))
-        if (store) {
-          store.login(userData)
-          store.showNotification('登录成功！', 'success')
-        }
-        router.push('/profile')
+function login() {
+  axios.post('/api/auth/login', { username: form.username, password: form.password })
+    .then(res => {
+      // 登录成功逻辑，如保存 token、跳转页面等
+      router.push('/')
+    })
+    .catch(err => {
+      if (err.response && err.response.status === 401) {
+        alert('用户名或密码错误');
       } else {
-        errors.password = res.data.message || '登录失败'
-        if (store) store.showNotification(errors.password, 'error')
+        alert('登录失败，请稍后再试');
       }
-    } catch (err) {
-      errors.password = '网络错误，请稍后重试'
-      if (store) store.showNotification(errors.password, 'error')
-    }
-  }
+      console.error('登录失败', err)
+    })
 }
 </script>
 

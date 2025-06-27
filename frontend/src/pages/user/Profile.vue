@@ -32,28 +32,25 @@
       </div>
     </template>
 
-    <script>
-    export default {
-      name: 'Profile',
-      data() {
-        return {
-          user: {
-            username: 'testuser',
-            email: 'test@example.com',
-            registerDate: '2023-01-01'
-          }
-        }
-      },
-      methods: {
-        logout() {
-          localStorage.removeItem('token')
-          localStorage.removeItem('user')
-          // 触发自定义事件通知导航栏更新状态
-          window.dispatchEvent(new Event('loginStatusChanged'))
-          this.$router.push({ name: 'Login' })
-        }
-      }
+    <script setup>
+    import axios from 'axios'
+    import { ref, onMounted } from 'vue'
+
+    const profile = ref(null)
+
+    function getProfile() {
+      axios.get('/api/auth/profile')
+        .then(res => {
+          profile.value = res.data
+        })
+        .catch(err => {
+          console.error('获取用户信息失败', err)
+        })
     }
+
+    onMounted(() => {
+      getProfile()
+    })
     </script>
 
     <style scoped>

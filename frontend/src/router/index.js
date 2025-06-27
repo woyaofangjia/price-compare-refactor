@@ -22,19 +22,20 @@ const routes = [
   { path: '/', name: 'Home', component: Home },
   { path: '/login', name: 'Login', component: Login },
   { path: '/register', name: 'Register', component: Register },
-  { path: '/profile', name: 'Profile', component: Profile },
-  { path: '/profile/edit', name: 'EditProfile', component: EditProfile },
+  { path: '/profile', name: 'Profile', component: Profile, meta: { requiresAuth: true } },
+  { path: '/profile/edit', name: 'EditProfile', component: EditProfile, meta: { requiresAuth: true } },
   { path: '/detail', name: 'Detail', component: Detail },
-  { path: '/favorites', name: 'Favorites', component: Favorites },
+  { path: '/favorites', name: 'Favorites', component: Favorites, meta: { requiresAuth: true } },
   { path: '/chart', name: 'Chart', component: Chart },
   { path: '/square', name: 'Square', component: SquarePage },
-  { path: '/my-dynamic', name: 'MyDynamic', component: Dynamic },
-  { path: '/post/create', name: 'PostCreate', component: PostDynamicPage },
+  { path: '/my-dynamic', name: 'MyDynamic', component: Dynamic, meta: { requiresAuth: true } },
+  { path: '/post/create', name: 'PostCreate', component: PostDynamicPage, meta: { requiresAuth: true } },
   { path: '/auth', name: 'Auth', component: Auth },
   { path: '/product/:id', name: 'ProductDetail', component: ProductDetailPage },
   {
     path: '/admin',
     component: Admin,
+    meta: { requiresAuth: true },
     children: [
       { path: '', redirect: '/admin/products' },
       { path: 'products', component: Products },
@@ -50,6 +51,16 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+// 全局路由守卫
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token')
+  if (to.meta.requiresAuth && !token) {
+    next({ path: '/login', query: { redirect: to.fullPath } })
+  } else {
+    next()
+  }
 })
 
 export default router

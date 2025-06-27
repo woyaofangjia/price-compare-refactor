@@ -56,11 +56,15 @@
 import { reactive, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { ref } from 'vue'
 
 const form = reactive({ username: '', email: '', password: '', confirmPassword: '' })
 const errors = reactive({ username: '', email: '', password: '', confirmPassword: '' })
 const router = useRouter()
 const store = inject('store')
+
+const username = ref('')
+const password = ref('')
 
 function validateForm() {
   let isValid = true
@@ -94,32 +98,18 @@ function validateForm() {
 }
 
 function register() {
-  if (validateForm()) {
-    axios.post('/api/register', {
-      username: form.username,
-      email: form.email,
-      password: form.password
-    }).then(res => {
-      if (res.data.code === 0) {
-        const userData = res.data.data.user
-        const token = res.data.data.token
-        localStorage.setItem('token', token)
-        localStorage.setItem('user', JSON.stringify(userData))
-        window.dispatchEvent(new Event('loginStatusChanged'))
-        if (store) {
-          store.login(userData)
-          store.showNotification('注册成功！', 'success')
-        }
-        router.push('/profile')
-      } else {
-        errors.password = res.data.message || '注册失败'
-        if (store) store.showNotification(errors.password, 'error')
-      }
-    }).catch(() => {
-      errors.password = '网络错误，请稍后重试'
-      if (store) store.showNotification(errors.password, 'error')
+  axios.post('/api/auth/register', {
+    username: form.username,
+    password: form.password,
+    email: form.email
+  })
+    .then(res => {
+      // 注册成功后跳转到登录页
+      router.push('/login')
     })
-  }
+    .catch(err => {
+      console.error('注册失败', err)
+    })
 }
 </script>
 

@@ -31,61 +31,30 @@
       </div>
     </template>
 
-    <script>
-    export default {
-      name: 'EditProfile',
-      data() {
-        return {
-          user: {
-            username: '',
-            email: ''
-          },
-          newPassword: '',
-          confirmPassword: ''
-        }
-      },
-      mounted() {
-        // 从localStorage获取用户信息
-        const userStr = localStorage.getItem('user')
-        if (userStr) {
-          const userData = JSON.parse(userStr)
-          this.user = {
-            username: userData.username || '',
-            email: userData.email || ''
-          }
-        }
-      },
-      methods: {
-        saveChanges() {
-          // 验证新密码
-          if (this.newPassword && this.newPassword !== this.confirmPassword) {
-            alert('两次输入的新密码不一致')
-            return
-          }
+    <script setup>
+    import axios from 'axios'
+    import { ref } from 'vue'
 
-          // 更新localStorage中的用户信息
-          const userStr = localStorage.getItem('user')
-          if (userStr) {
-            const userData = JSON.parse(userStr)
-            userData.email = this.user.email
-            localStorage.setItem('user', JSON.stringify(userData))
-          }
+    const profile = ref(null)
 
-          // 模拟保存修改
-          alert('个人信息已更新')
-          this.$router.push({ name: 'Profile' })
-        },
-        cancel() {
-          this.$router.push({ name: 'Profile' })
-        },
-        logout() {
-          localStorage.removeItem('token')
-          localStorage.removeItem('user')
-          // 触发自定义事件通知导航栏更新状态
-          window.dispatchEvent(new Event('loginStatusChanged'))
-          this.$router.push({ name: 'Login' })
-        }
-      }
+    function getProfile() {
+      axios.get('/api/auth/profile')
+        .then(res => {
+          profile.value = res.data
+        })
+        .catch(err => {
+          console.error('获取用户信息失败', err)
+        })
+    }
+
+    function updateProfile(data) {
+      axios.put('/api/auth/profile', data)
+        .then(res => {
+          // 处理成功逻辑
+        })
+        .catch(err => {
+          console.error('更新用户信息失败', err)
+        })
     }
     </script>
 
