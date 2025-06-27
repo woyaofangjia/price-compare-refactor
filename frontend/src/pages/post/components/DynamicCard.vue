@@ -7,6 +7,15 @@
         <div class="username">{{ post.username }}</div>
         <div class="post-time">{{ post.time }}</div>
       </div>
+      <!-- 编辑按钮 -->
+      <div v-if="canEdit" class="edit-actions">
+        <button class="edit-btn" @click.stop="handleEdit">
+          <i class="fas fa-edit"></i>
+        </button>
+        <button class="delete-btn" @click.stop="handleDelete">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
     </div>
     <div class="dynamic-content">
       <div class="content-text">{{ post.content }}</div>
@@ -26,13 +35,13 @@
     </div>
     <div class="dynamic-footer">
       <div class="interaction-bar">
-        <div class="interaction-btn" :class="{ active: isLiked }" @click.stop="handleLike">
-          <i class="fas fa-heart"></i> <span>{{ likes }}</span>
+        <div class="interaction-btn" :class="{ active: post.isLiked }" @click.stop="handleLike">
+          <i class="fas fa-heart"></i> <span>{{ post.likes || 0 }}</span>
         </div>
         <div class="interaction-btn" @click.stop="handleComment">
-          <i class="fas fa-comment"></i> <span>{{ post.comments }}</span>
+          <i class="fas fa-comment"></i> <span>{{ post.comments || 0 }}</span>
         </div>
-        <div class="interaction-btn" :class="{ active: isCollected }" @click.stop="handleCollect">
+        <div class="interaction-btn" :class="{ active: post.isCollected }" @click.stop="handleCollect">
           <i class="fas fa-star"></i> 收藏
         </div>
       </div>
@@ -42,41 +51,94 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
-const props = defineProps({ post: Object })
-const emit = defineEmits(['card-click'])
+const props = defineProps({ 
+  post: Object 
+})
+
+const emit = defineEmits(['card-click', 'like', 'collect', 'edit', 'delete'])
 const router = useRouter()
 
-const isLiked = ref(false)
-const isCollected = ref(false)
-const likes = ref(props.post.likes || 0)
+// 计算是否有编辑权限
+const canEdit = computed(() => {
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
+  return currentUser.id === props.post.userId
+})
 
 function handleCardClick() {
   emit('card-click', props.post)
 }
 
 function handleLike() {
-  isLiked.value = !isLiked.value
-  likes.value += isLiked.value ? 1 : -1
+  emit('like', props.post.id)
 }
 
 function handleCollect() {
-  isCollected.value = !isCollected.value
+  emit('collect', props.post.id)
 }
 
 function handleComment() {
   emit('card-click', props.post)
 }
+
+function handleEdit() {
+  router.push(`/post/create?edit=${props.post.id}`)
+}
+
+function handleDelete() {
+  if (confirm('确定要删除这条动态吗？')) {
+    emit('delete', props.post.id)
+  }
+}
 </script>
 
 <style scoped>
 @import '../styles/square-page.scss';
+
 .interaction-btn.active i.fa-heart {
   color: #e74c3c;
 }
+
 .interaction-btn.active i.fa-star {
   color: #f7b731;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.edit-btn, .delete-btn {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.edit-btn {
+  color: #3498db;
+}
+
+.edit-btn:hover {
+  background: rgba(52, 152, 219, 0.1);
+}
+
+.delete-btn {
+  color: #e74c3c;
+}
+
+.delete-btn:hover {
+  background: rgba(231, 76, 60, 0.1);
+}
+
+.dynamic-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
 }
 </style>
