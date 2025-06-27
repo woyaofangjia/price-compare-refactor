@@ -4,7 +4,7 @@
       <h2 class="section-title">我的收藏夹</h2>
       <div class="favorites-container">
         <div class="favorites-grid">
-          <div class="favorite-item" v-for="item in favorites" :key="item.title" @click="goToProduct(item.id)" style="cursor:pointer;">
+          <div class="favorite-item" v-for="item in favorites" :key="item.id" @click="goToProduct(item.id)" style="cursor:pointer;">
             <div class="favorite-image">
               <img :src="item.img" :alt="item.title" />
             </div>
@@ -28,34 +28,17 @@
 </template>
 
 <script setup>
-import { reactive } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
-const favorites = reactive([
-  {
-    img: 'https://via.placeholder.com/80x80?text=手机',
-    title: '某品牌旗舰手机 8GB+256GB 全网通',
-    price: '￥3,299',
-    priceChange: -180,
-    alertPrice: 3000
-  },
-  {
-    img: 'https://via.placeholder.com/80x80?text=笔记本',
-    title: '某品牌轻薄笔记本 i7高配 16GB内存',
-    price: '￥6,499',
-    priceChange: 150,
-    alertPrice: 6000
-  },
-  {
-    img: 'https://via.placeholder.com/80x80?text=手表',
-    title: '智能健康手表 多功能 续航强',
-    price: '￥899',
-    priceChange: -85,
-    alertPrice: 800
-  }
-])
-
+const favorites = ref([])
 const router = useRouter()
+
+onMounted(async () => {
+  const res = await fetch('/api/favorites')
+  favorites.value = await res.json()
+})
+
 function goToProduct(id) {
   router.push(`/product/${id}`)
 }

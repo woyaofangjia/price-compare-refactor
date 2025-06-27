@@ -66,7 +66,7 @@
       </div>
       <h2 class="section-title" style="margin-top: 40px;">近期降价商品</h2>
       <div class="products-grid">
-        <div class="product-card" v-for="item in dropProducts" :key="item.title">
+        <div class="product-card" v-for="item in dropProducts" :key="item.id">
           <div class="product-image">
             <img :src="item.img" :alt="item.title" />
           </div>
@@ -85,58 +85,22 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+const hotProducts = ref([])
+const dropProducts = ref([])
 
-const hotProducts = [
-  {
-    img: 'https://via.placeholder.com/200x200?text=旗舰手机',
-    title: '某品牌旗舰手机 8GB+256GB 全网通',
-    price: '￥3,299',
-    priceChange: -5.2,
-    platforms: ['京东', '天猫', '拼多多']
-  },
-  {
-    img: 'https://via.placeholder.com/200x200?text=轻薄笔记本',
-    title: '某品牌轻薄笔记本 i7高配 16GB内存',
-    price: '￥6,499',
-    priceChange: 2.1,
-    platforms: ['京东', '苏宁']
-  },
-  {
-    img: 'https://via.placeholder.com/200x200?text=智能手表',
-    title: '智能健康手表 多功能 续航强',
-    price: '￥899',
-    priceChange: -8.7,
-    platforms: ['天猫', '拼多多']
-  },
-  {
-    img: 'https://via.placeholder.com/200x200?text=运动手环',
-    title: '运动智能手环 血氧检测 50米防水',
-    price: '￥1,299',
-    priceChange: -3.4,
-    platforms: ['京东', '天猫', '官方商城']
-  }
-];
-const dropProducts = [
-  {
-    img: 'https://via.placeholder.com/200x200?text=游戏主机',
-    title: '新一代游戏主机 4K高清 1TB存储',
-    price: '￥3,199',
-    oldPrice: '￥3,899',
-    priceChange: 18.0,
-    platforms: ['京东', '苏宁']
-  },
-  {
-    img: 'https://via.placeholder.com/200x200?text=平板电脑',
-    title: '高性能平板电脑 10.5英寸 128GB',
-    price: '￥2,399',
-    oldPrice: '￥2,999',
-    priceChange: 20.0,
-    platforms: ['天猫', '拼多多']
-  }
-];
+onMounted(async () => {
+  // 热门商品
+  const hotRes = await fetch('/api/products/hot')
+  hotProducts.value = await hotRes.json()
+
+  // 降价商品
+  const dropRes = await fetch('/api/products/drops')
+  dropProducts.value = await dropRes.json()
+})
 
 function goToProduct(id) {
   router.push(`/product/${id}`)
