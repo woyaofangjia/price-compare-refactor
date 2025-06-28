@@ -26,10 +26,15 @@ api.interceptors.request.use(
 // 响应拦截器
 api.interceptors.response.use(
   response => {
+    // 成功响应直接返回数据
     return response.data
   },
   error => {
     console.error('API Error:', error)
+    // 如果有响应数据，返回响应数据，否则返回错误对象
+    if (error.response && error.response.data) {
+      return Promise.reject(error.response.data)
+    }
     return Promise.reject(error)
   }
 )

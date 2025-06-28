@@ -18,4 +18,19 @@ export function getProfile() {
 // 修改用户信息
 export function updateProfile(data) {
   return request.put('/auth/profile', data);
+}
+
+// 管理员API - 获取所有用户
+export function getAllUsers() {
+  return request.get('/admin/users');
+}
+
+// 管理员API - 更新用户信息（角色、状态等）
+export function updateUser(userId, data) {
+  return request.put(`/admin/users/${userId}`, data);
+}
+
+// 管理员API - 删除用户
+export function deleteUser(userId) {
+  return request.delete(`/admin/users/${userId}`);
 } 
