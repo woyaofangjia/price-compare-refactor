@@ -3,12 +3,12 @@
     <div class="container">
       <div class="product-detail" v-if="product">
         <div class="detail-image">
-          <img :src="product.img" :alt="product.title" />
+          <img :src="product.img || product.image || defaultImg" :alt="product.title" @error="onImgError" style="object-fit:contain;width:100%;height:100%;" loading="lazy" />
         </div>
         <div class="detail-info">
           <h1>{{ product.title }}</h1>
           <div style="color: var(--gray); margin-bottom: 15px;">{{ product.desc }}</div>
-          <div class="current-price">{{ product.price }}</div>
+          <div class="current-price">{{ product.price || '—' }}</div>
           <div class="price-change price-down">较上月 {{ product.priceChange }}%</div>
           <div class="price-comparison">
             <h3>平台比价</h3>
@@ -18,8 +18,16 @@
             </div>
           </div>
           <div class="action-buttons">
-            <button class="btn btn-primary"><i class="fas fa-shopping-cart"></i> 去购买</button>
-            <button class="btn btn-outline" @click="addToFavorites"><i class="fas fa-heart"></i> 收藏商品</button>
+            <button
+              class="btn btn-outline"
+              v-if="!isFavorite"
+              @click="addToFavorites"
+            ><i class="fas fa-heart"></i> 收藏商品</button>
+            <button
+              class="btn btn-outline"
+              v-else
+              @click="removeFromFavorites"
+            ><i class="fas fa-heart-broken"></i> 取消收藏</button>
             <button class="btn btn-outline"><i class="fas fa-bell"></i> 设置提醒</button>
           </div>
         </div>
@@ -36,16 +44,45 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
+const router = useRouter()
 const product = ref(null)
 const platformPrices = ref([])
 const priceHistory = ref([])
+const isFavorite = ref(false)
+const favoriteId = ref(null)
+const user = JSON.parse(localStorage.getItem('user') || '{}')
+const userId = user && user.id
+const productId = route.params.id
+const defaultImg = '/default-product.png'
+
+console.log('userId:', userId, 'productId:', productId, 'user:', user)
+
+function onImgError(e) {
+  e.target.src = defaultImg
+}
+
+async function checkFavorite() {
+  const id = route.params.id
+  if (!userId || !id) {
+    isFavorite.value = false
+    favoriteId.value = null
+    return
+  }
+  const res = await fetch(`/api/favorites/check?userId=${userId}&productId=${id}`)
+  const data = await res.json()
+  isFavorite.value = !!data.exists
+  favoriteId.value = data.id || null
+}
 
 onMounted(async () => {
   const id = route.params.id
-
+  if (!userId) {
+    router.push('/login')
+    return
+  }
   // 商品详情
   const res = await fetch(`/api/products/${id}`)
   product.value = await res.json()
@@ -58,37 +95,73 @@ onMounted(async () => {
   const histRes = await fetch(`/api/products/${id}/price-history`)
   priceHistory.value = await histRes.json()
 
+  // 查询是否已收藏
+  await checkFavorite()
+
   // Chart.js 绘图部分，数据用 priceHistory.value
   if (window.Chart) {
     const ctx = document.getElementById('priceHistoryChart').getContext('2d');
-    new window.Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: priceHistory.value.map(item => item.date),
-        datasets: [{
-          label: '价格走势 (元)',
-          data: priceHistory.value.map(item => item.price),
-          borderColor: '#4361ee',
-          backgroundColor: 'rgba(67, 97, 238, 0.1)',
-          borderWidth: 3,
-          tension: 0.3,
-          fill: true
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: { beginAtZero: false, grid: { color: 'rgba(0, 0, 0, 0.05)' } },
-          x: { grid: { display: false } }
+    if (priceHistory.value.length > 0) {
+      new window.Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: priceHistory.value.map(item => item.date),
+          datasets: [{
+            label: '价格走势 (元)',
+            data: priceHistory.value.map(item => item.price),
+            borderColor: '#4361ee',
+            backgroundColor: 'rgba(67, 97, 238, 0.1)',
+            borderWidth: 3,
+            tension: 0.3,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: false, grid: { color: 'rgba(0, 0, 0, 0.05)' } },
+            x: { grid: { display: false } }
+          }
         }
-      }
-    });
+      });
+    }
   }
 })
 
-function addToFavorites() {
-  alert('商品已加入收藏夹！')
+async function addToFavorites() {
+  const id = route.params.id
+  if (!userId || !id) {
+    alert('请先登录或商品信息有误')
+    return
+  }
+  const res = await fetch('/api/favorites', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ productId: id, userId: userId })
+  })
+  if (res.ok) {
+    await checkFavorite()
+    alert('收藏成功！')
+  } else {
+    const data = await res.json()
+    alert(data.message || '收藏失败')
+  }
+}
+
+async function removeFromFavorites() {
+  if (!favoriteId.value) {
+    alert('参数有误')
+    return
+  }
+  const res = await fetch(`/api/favorites/${favoriteId.value}`, { method: 'DELETE' })
+  if (res.ok) {
+    await checkFavorite()
+    alert('已取消收藏')
+  } else {
+    const data = await res.json()
+    alert(data.message || '取消收藏失败')
+  }
 }
 </script>
 
@@ -126,6 +199,14 @@ function addToFavorites() {
   color: var(--warning);
   font-weight: bold;
   margin: 15px 0;
+}
+.price-change {
+  font-size: 1.2rem;
+  color: var(--success);
+  font-weight: bold;
+}
+.price-down {
+  color: var(--success);
 }
 .price-comparison {
   background: var(--light);
