@@ -4,7 +4,13 @@
       <h2 class="section-title">我的收藏夹</h2>
       <div class="favorites-container">
         <div class="favorites-grid">
-          <div class="favorite-item" v-for="item in favorites" :key="item.id">
+          <div
+            class="favorite-item"
+            v-for="item in favorites"
+            :key="item.id"
+            @click="goToProduct(item.product_id)"
+            style="cursor:pointer;"
+          >
             <div class="favorite-image">
               <img :src="item.img || item.image || defaultImg" :alt="item.title" @error="onImgError" />
             </div>
@@ -16,8 +22,24 @@
               </div>
               <div class="alert-setting">
                 <span>提醒价：</span>
-                <input type="number" v-model="item.alertPrice" style="width: 100px;" @click.stop />
+                <input 
+                  type="number" 
+                  v-model="item.alertPrice" 
+                  style="width: 100px;" 
+                  @click.stop 
+                  @blur="saveAlertPrice(item.id, item.alertPrice)"
+                  @keyup.enter="saveAlertPrice(item.id, item.alertPrice)"
+                  step="0.01"
+                  min="0"
+                  placeholder="设置提醒价"
+                />
                 <span>元时通知我</span>
+                <div class="save-status" v-if="item.saveStatus">
+                  <i :class="item.saveStatus === 'saving' ? 'fas fa-spinner fa-spin' : 
+                           item.saveStatus === 'success' ? 'fas fa-check' : 'fas fa-times'"></i>
+                  {{ item.saveStatus === 'saving' ? '保存中...' : 
+                     item.saveStatus === 'success' ? '已保存' : '保存失败' }}
+                </div>
               </div>
               <button class="btn btn-outline" @click.stop="removeFromFavorites(item.id)">取消收藏</button>
             </div>
@@ -37,24 +59,32 @@ const router = useRouter()
 const user = JSON.parse(localStorage.getItem('user') || '{}')
 const userId = user && user.id
 const defaultImg = '/default-product.png'
+
 function onImgError(e) {
   e.target.src = defaultImg
 }
 
 async function fetchFavorites() {
-  console.log('favorites:', favorites.value)
+  console.log('收藏夹数据:', favorites.value)
   if (!userId) {
     router.push('/login')
     return
   }
   const res = await fetch(`/api/favorites?userId=${userId}`)
-  favorites.value = await res.json()
+  const data = await res.json()
+  // 为每个收藏项添加保存状态
+  favorites.value = data.map(item => ({
+    ...item,
+    saveStatus: null
+  }))
 }
 
 onMounted(fetchFavorites)
 
-function goToProduct(id) {
-  router.push(`/product/${id}`)
+function goToProduct(productId) {
+  console.log('跳转商品id:', productId)
+  if (!productId) return
+  router.push(`/product/${productId}`)
 }
 
 async function removeFromFavorites(favoriteId) {
@@ -69,6 +99,54 @@ async function removeFromFavorites(favoriteId) {
   } else {
     const data = await res.json()
     alert(data.message || '取消收藏失败')
+  }
+}
+
+async function saveAlertPrice(favoriteId, alertPrice) {
+  if (!favoriteId) {
+    console.error('收藏ID不存在')
+    return
+  }
+
+  // 找到对应的收藏项
+  const favorite = favorites.value.find(item => item.id === favoriteId)
+  if (!favorite) {
+    console.error('找不到对应的收藏项')
+    return
+  }
+
+  // 设置保存状态为保存中
+  favorite.saveStatus = 'saving'
+
+  try {
+    // 验证价格
+    if (alertPrice && parseFloat(alertPrice) <= 0) {
+      throw new Error('提醒价格必须大于0')
+    }
+
+    const res = await fetch(`/api/favorites/${favoriteId}/alert`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ alertPrice: alertPrice ? parseFloat(alertPrice) : null })
+    })
+
+    if (res.ok) {
+      favorite.saveStatus = 'success'
+      // 3秒后清除成功状态
+      setTimeout(() => {
+        favorite.saveStatus = null
+      }, 3000)
+    } else {
+      const data = await res.json()
+      throw new Error(data.message || '保存失败')
+    }
+  } catch (error) {
+    console.error('保存提醒价格失败:', error)
+    favorite.saveStatus = 'error'
+    // 3秒后清除错误状态
+    setTimeout(() => {
+      favorite.saveStatus = null
+    }, 3000)
   }
 }
 </script>
@@ -146,6 +224,8 @@ async function removeFromFavorites(favoriteId) {
   display: flex;
   align-items: center;
   margin-top: 10px;
+  flex-wrap: wrap;
+  gap: 5px;
 }
 .alert-setting input {
   width: 100px;
@@ -153,6 +233,29 @@ async function removeFromFavorites(favoriteId) {
   border: 1px solid var(--light-gray);
   border-radius: 5px;
   margin: 0 10px;
+}
+.alert-setting input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+.save-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  margin-left: 10px;
+}
+.save-status i {
+  font-size: 0.7rem;
+}
+.save-status:has(.fa-spinner) {
+  color: var(--primary);
+}
+.save-status:has(.fa-check) {
+  color: var(--success);
+}
+.save-status:has(.fa-times) {
+  color: var(--danger);
 }
 .btn {
   margin-top: 10px;
@@ -173,6 +276,14 @@ async function removeFromFavorites(favoriteId) {
   .favorite-image {
     margin-bottom: 10px;
     margin-right: 0;
+  }
+  .alert-setting {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .save-status {
+    margin-left: 0;
+    margin-top: 5px;
   }
 }
 </style>
