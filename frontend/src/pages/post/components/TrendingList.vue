@@ -37,14 +37,7 @@ const loading = ref(false)
 async function fetchTrendingPosts() {
   try {
     loading.value = true
-    const user = JSON.parse(localStorage.getItem('user') || '{}')
-    const userId = user.id
-    if (!userId) {
-      if (store) store.showNotification('请先登录后再查看推荐动态', 'warning')
-      loading.value = false
-      return
-    }
-    const response = await postsAPI.getRecommendPosts(userId)
+    const response = await postsAPI.getRecommendPosts()
     if (response.code === 0) {
       trendingPosts.value = response.data.slice(0, 5) // 只显示前5条
     } else {

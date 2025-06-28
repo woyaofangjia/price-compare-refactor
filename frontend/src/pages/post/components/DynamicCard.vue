@@ -19,8 +19,14 @@
     </div>
     <div class="dynamic-content">
       <div class="content-text">{{ post.content }}</div>
-      <div class="images-grid" v-if="post.images && post.images.length">
-        <img v-for="(img, index) in post.images" :key="index" :src="img" class="image-item" />
+      <div class="image-grid" v-if="post.images && post.images.length > 0">
+        <img 
+          v-for="(img, index) in post.images" 
+          :key="index" 
+          :src="img" 
+          class="content-image" 
+          :alt="`图片${index + 1}`"
+        />
       </div>
       <div class="product-card" v-if="post.product">
         <div class="product-info">
@@ -61,7 +67,6 @@ const props = defineProps({
 const emit = defineEmits(['card-click', 'like', 'collect', 'edit', 'delete'])
 const router = useRouter()
 
-// 计算是否有编辑权限
 const canEdit = computed(() => {
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
   return currentUser.id === props.post.userId
@@ -140,5 +145,25 @@ function handleDelete() {
   display: flex;
   align-items: center;
   margin-bottom: 15px;
+}
+
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.content-image {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.content-image:hover {
+  transform: scale(1.05);
 }
 </style>

@@ -10,6 +10,7 @@ import Chart from '@/pages/home/Chart.vue'
 import SquarePage from '@/pages/post/SquarePage.vue'
 import Dynamic from '@/pages/Dynamic.vue'
 import PostDynamicPage from '@/pages/post/PostDynamicPage.vue'
+import CollectionsPage from '@/pages/post/CollectionsPage.vue'
 import Auth from '@/pages/Auth.vue'
 import Admin from '@/pages/admin/Admin.vue'
 import Products from '@/pages/admin/Products.vue'
@@ -30,6 +31,7 @@ const routes = [
   { path: '/square', name: 'Square', component: SquarePage },
   { path: '/my-dynamic', name: 'MyDynamic', component: Dynamic, meta: { requiresAuth: true } },
   { path: '/post/create', name: 'PostCreate', component: PostDynamicPage, meta: { requiresAuth: true } },
+  { path: '/collections', name: 'Collections', component: CollectionsPage, meta: { requiresAuth: true } },
   { path: '/auth', name: 'Auth', component: Auth },
   { path: '/product/:id', name: 'ProductDetail', component: ProductDetailPage },
   {
