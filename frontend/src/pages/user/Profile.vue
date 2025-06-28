@@ -14,10 +14,6 @@
               <span class="label">邮箱:</span>
               <span class="value">{{ user.email }}</span>
             </div>
-            <div class="info-item">
-              <span class="label">注册日期:</span>
-              <span class="value">{{ user.registerDate }}</span>
-            </div>
           </div>
         </div>
         <div class="user-actions">

@@ -33,29 +33,67 @@
 
     <script setup>
     import axios from 'axios'
-    import { ref } from 'vue'
+    import { ref, onMounted } from 'vue'
+    import { useRouter } from 'vue-router'
 
-    const profile = ref(null)
+    const router = useRouter()
+    const user = ref({})
+    const newPassword = ref('')
+    const confirmPassword = ref('')
 
-    function getProfile() {
-      axios.get('/api/auth/profile')
-        .then(res => {
-          profile.value = res.data
-        })
-        .catch(err => {
-          console.error('获取用户信息失败', err)
-        })
+    function getUser() {
+      const u = localStorage.getItem('user')
+      user.value = u ? JSON.parse(u) : {}
     }
 
-    function updateProfile(data) {
-      axios.put('/api/auth/profile', data)
+    function saveChanges() {
+      if (newPassword.value && newPassword.value !== confirmPassword.value) {
+        alert('两次输入的密码不一致')
+        return
+      }
+
+      const updateData = {
+        email: user.value.email
+      }
+
+      if (newPassword.value) {
+        updateData.password = newPassword.value
+      }
+
+      const token = localStorage.getItem('token')
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }
+
+      axios.put('/api/auth/profile', updateData, config)
         .then(res => {
-          // 处理成功逻辑
+          alert('修改成功')
+          // 更新localStorage中的用户信息
+          localStorage.setItem('user', JSON.stringify(user.value))
+          router.push('/profile')
         })
         .catch(err => {
           console.error('更新用户信息失败', err)
+          alert('修改失败，请稍后再试')
         })
     }
+
+    function cancel() {
+      router.push('/profile')
+    }
+
+    function logout() {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      window.dispatchEvent(new Event('loginStatusChanged'))
+      router.push('/login')
+    }
+
+    onMounted(() => {
+      getUser()
+    })
     </script>
 
     <style scoped>
