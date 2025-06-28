@@ -16,7 +16,6 @@ import Products from '@/pages/admin/Products.vue'
 import Posts from '@/pages/admin/Posts.vue'
 import PostDetail from '@/pages/admin/PostDetail.vue'
 import Charts from '@/pages/admin/Charts.vue'
-import ProductDetailPage from '@/pages/ProductDetailPage.vue'
 
 const routes = [
   { path: '/', name: 'Home', component: Home },
@@ -31,7 +30,6 @@ const routes = [
   { path: '/my-dynamic', name: 'MyDynamic', component: Dynamic, meta: { requiresAuth: true } },
   { path: '/post/create', name: 'PostCreate', component: PostDynamicPage, meta: { requiresAuth: true } },
   { path: '/auth', name: 'Auth', component: Auth },
-  { path: '/product/:id', name: 'ProductDetail', component: ProductDetailPage },
   {
     path: '/admin',
     component: Admin,
