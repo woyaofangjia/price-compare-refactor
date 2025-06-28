@@ -44,7 +44,12 @@
         <div v-for="(post, index) in userPosts" :key="index" class="dynamic-card" @click="openDetail(post)" style="cursor:pointer;">
           <div class="dynamic-header">
             <div class="user-info">
-              <img :src="post.userAvatar" :alt="post.username" class="user-avatar" />
+              <img 
+                :src="getAvatarUrl(post.userAvatar)" 
+                :alt="post.username" 
+                class="user-avatar"
+                @error="handleAvatarError"
+              />
               <div class="user-details">
                 <div class="username">{{ post.username }}</div>
                 <div class="post-time">{{ post.time }}</div>
@@ -136,13 +141,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import DynamicDetailContent from './post/components/DynamicDetailContent.vue'
 import { postsAPI } from '@/api/posts.js'
+import { getAvatarUrl, handleAvatarError } from '@/utils/avatar.js'
 import axios from 'axios'
 
 const router = useRouter()
+const store = inject('store')
 const isLoggedIn = ref(false)
 const userPosts = ref([])
 const showDetail = ref(false)

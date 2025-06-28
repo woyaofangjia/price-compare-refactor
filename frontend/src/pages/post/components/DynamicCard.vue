@@ -2,7 +2,12 @@
   <div class="dynamic-card" @click="handleCardClick">
     <slot name="extra"></slot>
     <div class="dynamic-header">
-      <img :src="post.userAvatar" class="user-avatar" alt="用户头像" />
+      <img 
+        :src="avatarUrl" 
+        class="user-avatar" 
+        alt="用户头像"
+        @error="handleAvatarError"
+      />
       <div class="user-info">
         <div class="username">{{ post.username }}</div>
         <div class="post-time">{{ post.time }}</div>
@@ -59,6 +64,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { getAvatarUrl, handleAvatarError } from '@/utils/avatar.js'
 
 const props = defineProps({ 
   post: Object 
@@ -70,6 +76,11 @@ const router = useRouter()
 const canEdit = computed(() => {
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
   return currentUser.id === props.post.userId
+})
+
+// 计算头像URL
+const avatarUrl = computed(() => {
+  return getAvatarUrl(props.post.userAvatar)
 })
 
 function handleCardClick() {

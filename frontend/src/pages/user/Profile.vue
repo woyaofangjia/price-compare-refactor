@@ -26,7 +26,7 @@
             </div>
             <div class="info-item">
               <span class="label">邮箱:</span>
-              <span class="value">{{ user.email }}</span>
+              <span class="value">{{ user.email || '未设置' }}</span>
             </div>
           </div>
         </div>
@@ -67,6 +67,31 @@
     function getUser() {
       const u = localStorage.getItem('user')
       user.value = u ? JSON.parse(u) : {}
+      
+      // 如果用户信息不完整，从服务器获取完整信息
+      if (user.value.id && !user.value.email) {
+        fetchUserProfile()
+      }
+    }
+
+    async function fetchUserProfile() {
+      try {
+        const token = localStorage.getItem('token')
+        if (!token) return
+        
+        const response = await axios.get('/api/auth/profile', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        
+        if (response.data) {
+          user.value = response.data
+          localStorage.setItem('user', JSON.stringify(response.data))
+        }
+      } catch (error) {
+        console.error('获取用户信息失败:', error)
+      }
     }
 
     function handleAvatarError(event) {

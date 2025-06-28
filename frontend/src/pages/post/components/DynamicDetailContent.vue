@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="detail-header">
-      <img :src="post.userAvatar" class="user-avatar" />
+      <img :src="postAvatarUrl" class="user-avatar" @error="handleAvatarError" />
       <div class="user-info">
         <div class="username">{{ post.username }}</div>
         <div class="post-time">{{ post.time }}</div>
@@ -49,7 +49,7 @@
           <p>暂无评论，快来发表第一条评论吧！</p>
         </div>
         <div v-else class="comment-item" v-for="comment in comments" :key="comment.id">
-          <img :src="comment.userAvatar || 'https://randomuser.me/api/portraits/lego/1.jpg'" class="comment-avatar" />
+          <img :src="getCommentAvatarUrl(comment.userAvatar)" class="comment-avatar" @error="handleCommentAvatarError" />
           <div class="comment-content">
             <div class="comment-header">
               <div class="comment-author">{{ comment.username }}</div>
@@ -100,7 +100,7 @@
       <!-- 评论表单 -->
       <div class="comment-form">
         <div class="form-header">
-          <img :src="currentUser?.avatar || 'https://randomuser.me/api/portraits/lego/1.jpg'" class="current-user-avatar" />
+          <img :src="getCurrentUserAvatarUrl()" class="current-user-avatar" @error="handleCurrentUserAvatarError" />
           <span class="current-username">{{ currentUser?.username || '游客' }}</span>
         </div>
         <div class="form-content">
@@ -130,7 +130,8 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
+import { getAvatarUrl, handleAvatarError } from '@/utils/avatar.js'
 
 const props = defineProps({
   post: Object,
@@ -156,6 +157,11 @@ const localCommentSort = ref(props.commentSort || 'latest')
 // 监听props变化
 watch(() => props.commentSort, (newSort) => {
   localCommentSort.value = newSort
+})
+
+// 计算动态作者头像URL
+const postAvatarUrl = computed(() => {
+  return getAvatarUrl(props.post?.userAvatar)
 })
 
 function submitComment() {
@@ -199,6 +205,26 @@ function formatTime(timeStr) {
   if (diff < 2592000000) return `${Math.floor(diff / 86400000)}天前`
   
   return date.toLocaleDateString()
+}
+
+// 获取评论头像URL
+function getCommentAvatarUrl(avatar) {
+  return getAvatarUrl(avatar)
+}
+
+// 获取当前用户头像URL
+function getCurrentUserAvatarUrl() {
+  return getAvatarUrl(props.currentUser?.avatar)
+}
+
+// 处理评论头像加载错误
+function handleCommentAvatarError(event) {
+  handleAvatarError(event)
+}
+
+// 处理当前用户头像加载错误
+function handleCurrentUserAvatarError(event) {
+  handleAvatarError(event)
 }
 </script>
 

@@ -13,6 +13,15 @@
         class="trending-item"
         @click="handleClick(item)"
       >
+        <div class="trending-header">
+          <img 
+            :src="getAvatarUrl(item.userAvatar)" 
+            class="trending-avatar" 
+            alt="用户头像"
+            @error="handleAvatarError"
+          />
+          <span class="trending-username">{{ item.username }}</span>
+        </div>
         <div class="trending-content">
           <span class="trending-title">{{ item.content }}</span>
           <div class="trending-stats">
@@ -28,6 +37,7 @@
 <script setup>
 import { ref, onMounted, inject } from 'vue'
 import { postsAPI } from '@/api/posts.js'
+import { getAvatarUrl, handleAvatarError } from '@/utils/avatar.js'
 
 const store = inject('store')
 const trendingPosts = ref([])
@@ -76,6 +86,27 @@ onMounted(() => {
 .trending-item:hover {
   background: rgba(67, 97, 238, 0.05);
   color: rgba(60,60,60,0.8);
+}
+
+.trending-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.trending-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 8px;
+  border: 1px solid #eee;
+}
+
+.trending-username {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 500;
 }
 
 .trending-content {
