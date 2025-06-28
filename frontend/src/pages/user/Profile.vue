@@ -78,6 +78,8 @@
       const file = event.target.files[0]
       if (!file) return
 
+      console.log('选择的文件:', file.name, file.size, file.type)
+
       // 验证文件类型
       if (!file.type.startsWith('image/')) {
         alert('请选择图片文件')
@@ -95,12 +97,18 @@
         formData.append('avatar', file)
 
         const token = localStorage.getItem('token')
+        console.log('发送请求到:', '/api/upload/avatar')
+        console.log('Token:', token ? '存在' : '不存在')
+        
         const response = await axios.post('/api/upload/avatar', formData, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'multipart/form-data'
-          }
+          },
+          timeout: 10000 // 10秒超时
         })
+
+        console.log('上传响应:', response)
 
         if (response.data.avatarUrl) {
           // 更新本地用户信息
@@ -114,8 +122,17 @@
         }
       } catch (error) {
         console.error('头像上传失败:', error)
+        console.error('错误详情:', {
+          message: error.message,
+          code: error.code,
+          response: error.response?.data,
+          status: error.response?.status
+        })
+        
         if (error.response && error.response.data && error.response.data.message) {
           alert(error.response.data.message)
+        } else if (error.code === 'ERR_NETWORK') {
+          alert('网络连接失败，请检查网络连接或稍后再试')
         } else {
           alert('头像上传失败，请稍后再试')
         }
