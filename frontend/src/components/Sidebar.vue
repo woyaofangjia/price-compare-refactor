@@ -31,6 +31,12 @@
         </router-link>
       </li>
       <li>
+        <router-link to="/collections" class="sidebar-link" active-class="active">
+          <i class="fas fa-bookmark"></i>
+          <span>动态收藏</span>
+        </router-link>
+      </li>
+      <li>
         <router-link to="/chart" class="sidebar-link" active-class="active">
           <i class="fas fa-chart-line"></i>
           <span>图表</span>

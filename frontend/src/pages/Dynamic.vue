@@ -116,10 +116,19 @@
         :isCollected="false"
         :likes="selectedPost?.likes || 0"
         :currentUser="currentUser"
+        :commentTotal="commentTotal"
+        :commentPage="commentPage"
+        :commentPageSize="commentPageSize"
+        :commentSort="commentSort"
+        :commentLoading="commentLoading"
+        :commentSubmitting="commentSubmitting"
         @like="() => {}"
         @collect="() => {}"
         @submit-comment="onSubmitComment"
         @delete-comment="onDeleteComment"
+        @prev-page="prevCommentPage"
+        @next-page="nextCommentPage"
+        @sort-change="handleCommentSortChange"
       />
       <button class="close-btn" @click="closeDetail">关闭</button>
     </div>
@@ -130,6 +139,8 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import DynamicDetailContent from './post/components/DynamicDetailContent.vue'
+import { postsAPI } from '@/api/posts.js'
+import axios from 'axios'
 
 const router = useRouter()
 const isLoggedIn = ref(false)
@@ -138,6 +149,16 @@ const showDetail = ref(false)
 const selectedPost = ref(null)
 const detailComments = ref([])
 const currentUser = ref(null)
+const total = ref(0)
+const page = ref(1)
+const pageSize = ref(10)
+const sort = ref('latest')
+const commentPage = ref(1)
+const commentPageSize = ref(20)
+const commentTotal = ref(0)
+const commentSort = ref('latest')
+const commentLoading = ref(false)
+const commentSubmitting = ref(false)
 
 // 检查登录状态
 function checkLoginStatus() {
@@ -149,75 +170,80 @@ function checkLoginStatus() {
   }
 }
 
-// 获取用户动态
-function getUserPosts() {
+// 获取用户动态（从后端获取，支持分页/排序）
+async function getUserPosts() {
   if (!isLoggedIn.value) return
-  
-  // 模拟从本地存储获取用户动态
-  const storedPosts = localStorage.getItem('userPosts')
-  if (storedPosts) {
-    userPosts.value = JSON.parse(storedPosts)
-  } else {
-    // 模拟数据 - 添加更多测试数据
-    userPosts.value = [
-      {
-        id: 1,
-        username: '我',
-        userAvatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-        time: '2小时前',
-        content: '刚入手的新耳机，音质真的很棒！推荐给大家。',
-        images: ['https://images.unsplash.com/photo-1572536147248-ac59a8abfa4b'],
-        product: {
-          name: 'Sony WH-1000XM5',
-          price: '¥2,499',
-          image: 'https://images.unsplash.com/photo-1572536147248-ac59a8abfa4b',
-          platform: '京东 | 天猫'
-        },
-        likes: 12,
-        comments: 3,
-        isLiked: false
-      },
-      {
-        id: 2,
-        username: '我',
-        userAvatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-        time: '1天前',
-        content: '今天发现了一个很不错的购物网站，价格比实体店便宜很多！',
-        images: ['https://images.unsplash.com/photo-1511707171634-5f897ff02aa9'],
-        product: {
-          name: '示例商品',
-          price: '¥999',
-          image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9',
-          platform: '淘宝 | 拼多多'
-        },
-        likes: 8,
-        comments: 2,
-        isLiked: true
-      },
-      {
-        id: 3,
-        username: '我',
-        userAvatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-        time: '3天前',
-        content: '分享一个省钱小技巧：多平台比价真的很重要！',
-        images: [],
-        product: null,
-        likes: 15,
-        comments: 5,
-        isLiked: false
-      }
-    ]
-    localStorage.setItem('userPosts', JSON.stringify(userPosts.value))
+  const user = JSON.parse(localStorage.getItem('user') || '{}')
+  if (!user.id) return
+  try {
+    const response = await postsAPI.getUserPosts(user.id, page.value, pageSize.value, sort.value)
+    if (response.code === 0) {
+      userPosts.value = response.data.list || []
+      total.value = response.data.total || 0
+      page.value = response.data.page || 1
+      pageSize.value = response.data.pageSize || 10
+    } else {
+      userPosts.value = []
+      total.value = 0
+    }
+  } catch (e) {
+    userPosts.value = []
+    total.value = 0
   }
 }
 
+// 分页切换
+function prevPage() {
+  if (page.value > 1) {
+    page.value--
+    getUserPosts()
+  }
+}
+function nextPage() {
+  if (page.value < Math.ceil(total.value / pageSize.value)) {
+    page.value++
+    getUserPosts()
+  }
+}
+function handleSortChange(newSort) {
+  sort.value = newSort
+  page.value = 1
+  getUserPosts()
+}
+
 // 点赞动态
-function likePost(postId) {
-  const post = userPosts.value.find(p => p.id === postId)
-  if (post) {
-    post.isLiked = !post.isLiked
-    post.likes += post.isLiked ? 1 : -1
-    localStorage.setItem('userPosts', JSON.stringify(userPosts.value))
+async function likePost(postId) {
+  try {
+    const post = userPosts.value.find(p => p.id === postId)
+    if (!post) return
+    
+    const currentIsLiked = post.isLiked || false
+    const response = await postsAPI.toggleLike(postId, !currentIsLiked)
+    
+    if (response.code === 0) {
+      // 更新主列表
+      post.likes = response.data.likes
+      post.isLiked = response.data.isLiked
+      
+      // 更新详情页
+      if (selectedPost.value && selectedPost.value.id === postId) {
+        selectedPost.value.likes = response.data.likes
+        selectedPost.value.isLiked = response.data.isLiked
+        if (selectedPost.value !== post) {
+          selectedPost.value = { ...selectedPost.value }
+        }
+      }
+      
+      if (store) store.showNotification(
+        response.data.isLiked ? '点赞成功' : '取消点赞', 
+        'success'
+      )
+    } else {
+      if (store) store.showNotification('操作失败', 'error')
+    }
+  } catch (error) {
+    console.error('点赞操作失败:', error)
+    if (store) store.showNotification('操作失败', 'error')
   }
 }
 
@@ -236,95 +262,209 @@ function editPost(postId) {
 
 // 删除动态
 function deletePost(postId) {
-  console.log('尝试删除动态，ID:', postId)
-  console.log('当前动态列表:', userPosts.value)
-  
-  // 更友好的确认对话框
   if (confirm('确定要删除这条动态吗？\n删除后将无法恢复。')) {
     try {
-      // 从数组中移除动态
-      const originalLength = userPosts.value.length
       userPosts.value = userPosts.value.filter(p => p.id !== postId)
-      
-      console.log('删除后动态列表:', userPosts.value)
-      console.log('删除前长度:', originalLength, '删除后长度:', userPosts.value.length)
-      
-      // 检查是否真的删除了
-      if (userPosts.value.length < originalLength) {
-        // 更新本地存储
-        localStorage.setItem('userPosts', JSON.stringify(userPosts.value))
-        
-        // 显示成功消息
-        alert('动态删除成功！')
-        
-        // 触发页面更新事件
-        window.dispatchEvent(new Event('loginStatusChanged'))
-        
-        console.log('动态删除成功，已更新本地存储')
-      } else {
-        console.error('删除失败，未找到要删除的动态，ID:', postId)
-        alert('删除失败，未找到要删除的动态')
-      }
-    } catch (error) {
-      console.error('删除动态时出错:', error)
-      alert('删除动态时出现错误，请重试')
-    }
-  } else {
-    console.log('用户取消了删除操作')
-  }
-}
-
-// 预览图片
-function previewImage(imgSrc) {
-  // 这里可以实现图片预览功能
-  console.log('预览图片:', imgSrc)
-}
-
-// 清空所有动态
-function clearAllPosts() {
-  if (confirm('确定要清空所有动态吗？\n清空后将无法恢复。')) {
-    try {
-      userPosts.value = []
-      localStorage.removeItem('userPosts')
-      alert('所有动态已清空！')
+      alert('动态删除成功！')
       window.dispatchEvent(new Event('loginStatusChanged'))
     } catch (error) {
-      console.error('清空所有动态时出错:', error)
-      alert('清空所有动态时出现错误，请重试')
+      alert('删除动态时出现错误，请重试')
     }
   }
 }
 
-function openDetail(post) {
+// 清空所有动态（调用后端接口）
+async function clearAllPosts() {
+  if (!currentUser.value?.id) return
+  if (confirm('确定要清空所有动态吗？\n清空后将无法恢复。')) {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.delete(`/api/posts/user/${currentUser.value.id}/all`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      if (response.data.code === 0) {
+        alert(`成功删除 ${response.data.data.deletedCount} 条动态！`)
+        getUserPosts()
+      } else {
+        alert(response.data.message || '清空失败')
+      }
+    } catch (error) {
+      alert(error.response?.data?.message || '清空所有动态时出现错误，请重试')
+    }
+  }
+}
+
+function previewImage(imgSrc) {
+  // 这里可以实现图片预览功能
+}
+
+// 打开详情并加载评论（支持分页/排序）
+async function openDetail(post) {
   selectedPost.value = post
-  // 模拟评论
-  detailComments.value = [
-    { author: '我', text: '这是我的动态评论', time: '1小时前' },
-    { author: '用户A', text: '支持一下！', time: '30分钟前' }
-  ]
+  detailComments.value = []
   showDetail.value = true
+  commentPage.value = 1
+  await fetchComments(post.id)
+}
+
+// 获取评论列表
+async function fetchComments(postId) {
+  commentLoading.value = true
+  try {
+    const response = await postsAPI.getComments(postId, commentPage.value, commentPageSize.value, commentSort.value)
+    if (response.code === 0 && response.data) {
+      detailComments.value = response.data.list || []
+      commentTotal.value = response.data.total || 0
+      commentPage.value = response.data.page || 1
+      commentPageSize.value = response.data.pageSize || 20
+    } else {
+      detailComments.value = []
+      commentTotal.value = 0
+    }
+  } catch (e) {
+    detailComments.value = []
+    commentTotal.value = 0
+  } finally {
+    commentLoading.value = false
+  }
+}
+
+// 评论分页切换
+function prevCommentPage() {
+  if (commentPage.value > 1) {
+    commentPage.value--
+    fetchComments(selectedPost.value.id)
+  }
+}
+function nextCommentPage() {
+  if (commentPage.value < Math.ceil(commentTotal.value / commentPageSize.value)) {
+    commentPage.value++
+    fetchComments(selectedPost.value.id)
+  }
+}
+function handleCommentSortChange(newSort) {
+  commentSort.value = newSort
+  commentPage.value = 1
+  fetchComments(selectedPost.value.id)
+}
+
+// 处理评论提交（成功后刷新评论列表）
+async function onSubmitComment(comment) {
+  commentSubmitting.value = true
+  try {
+    const response = await postsAPI.addComment(selectedPost.value.id, { content: comment })
+    if (response.code === 0) {
+      // 重新加载评论第一页
+      commentPage.value = 1
+      await fetchComments(selectedPost.value.id)
+      // 更新主列表评论数
+      const post = userPosts.value.find(p => p.id === selectedPost.value.id)
+      if (post) {
+        post.comments = (post.comments || 0) + 1
+      }
+      // 更新详情页评论数
+      if (selectedPost.value) {
+        selectedPost.value.comments = (selectedPost.value.comments || 0) + 1
+        if (selectedPost.value !== post) {
+          selectedPost.value = { ...selectedPost.value }
+        }
+      }
+      if (store) store.showNotification('评论成功', 'success')
+    } else {
+      if (store) store.showNotification('评论失败', 'error')
+    }
+  } catch (error) {
+    console.error('评论操作失败:', error)
+    if (store) store.showNotification('评论失败', 'error')
+  } finally {
+    commentSubmitting.value = false
+  }
+}
+
+// 处理评论删除
+async function onDeleteComment(commentId) {
+  try {
+    const response = await postsAPI.deleteComment(selectedPost.value.id, commentId)
+    if (response.code === 0) {
+      // 重新加载评论列表
+      await fetchComments(selectedPost.value.id)
+      // 更新主列表评论数
+      const post = userPosts.value.find(p => p.id === selectedPost.value.id)
+      if (post) {
+        post.comments = Math.max(0, (post.comments || 0) - 1)
+      }
+      // 更新详情页评论数
+      if (selectedPost.value) {
+        selectedPost.value.comments = Math.max(0, (selectedPost.value.comments || 0) - 1)
+        if (selectedPost.value !== post) {
+          selectedPost.value = { ...selectedPost.value }
+        }
+      }
+      if (store) store.showNotification('评论删除成功', 'success')
+    } else {
+      if (store) store.showNotification('删除失败', 'error')
+    }
+  } catch (error) {
+    console.error('删除评论失败:', error)
+    if (store) store.showNotification('删除失败', 'error')
+  }
+}
+
+// 收藏动态
+async function collectPost(postId) {
+  try {
+    const post = userPosts.value.find(p => p.id === postId)
+    if (!post) return
+    
+    const currentIsCollected = post.isCollected || false
+    const response = await postsAPI.toggleCollect(postId, !currentIsCollected)
+    
+    if (response.code === 0) {
+      // 更新主列表
+      post.isCollected = response.data.isCollected
+      
+      // 更新详情页
+      if (selectedPost.value && selectedPost.value.id === postId) {
+        selectedPost.value.isCollected = response.data.isCollected
+        if (selectedPost.value !== post) {
+          selectedPost.value = { ...selectedPost.value }
+        }
+      }
+      
+      if (store) store.showNotification(
+        response.data.isCollected ? '收藏成功' : '取消收藏', 
+        'success'
+      )
+    } else {
+      if (store) store.showNotification('操作失败', 'error')
+    }
+  } catch (error) {
+    console.error('收藏操作失败:', error)
+    if (store) store.showNotification('操作失败', 'error')
+  }
 }
 
 function closeDetail() {
   showDetail.value = false
 }
 
-function onSubmitComment(comment) {
-  detailComments.value.push({ author: currentUser.value?.username || '你', text: comment, time: '刚刚' })
-}
-
-function onDeleteComment(index) {
-  detailComments.value.splice(index, 1)
-}
-
 onMounted(() => {
   checkLoginStatus()
   getUserPosts()
-  
   // 监听登录状态变化
   window.addEventListener('loginStatusChanged', () => {
     checkLoginStatus()
     getUserPosts()
+  })
+  
+  // 监听页面可见性变化，确保数据同步
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && showDetail.value && selectedPost.value) {
+      // 页面重新可见时，刷新评论数据
+      fetchComments(selectedPost.value.id)
+    }
   })
 })
 </script>

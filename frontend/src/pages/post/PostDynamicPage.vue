@@ -132,8 +132,7 @@ async function addImage() {
 
     try {
       loading.value = true
-      const user = JSON.parse(localStorage.getItem('user') || '{}')
-      const response = await uploadAPI.uploadImage(file, user.id || 1)
+      const response = await uploadAPI.uploadImage(file)
       
       if (response.data && response.data.code === 0) {
         images.value.push(response.data.data.url)
@@ -175,13 +174,11 @@ async function submitPost() {
     const postData = {
       content: content.value,
       images: images.value,
-      userId: user.id,
       timestamp: new Date().toISOString()
     }
 
-    // 调试信息
-    console.log('发送的数据:', postData)
-    console.log('用户信息:', user)
+    // 创建动态前打印token
+    console.log('当前token', localStorage.getItem('token'))
 
     let response
     if (isEditing.value) {

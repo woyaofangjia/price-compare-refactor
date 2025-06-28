@@ -26,17 +26,22 @@ api.interceptors.request.use(
 // 响应拦截器
 api.interceptors.response.use(
   response => {
+    // 成功响应直接返回数据
     return response.data
   },
   error => {
     console.error('API Error:', error)
+    // 如果有响应数据，返回响应数据，否则返回错误对象
+    if (error.response && error.response.data) {
+      return Promise.reject(error.response.data)
+    }
     return Promise.reject(error)
   }
 )
 
 // 动态相关API
 export const postsAPI = {
-  // 获取动态列表
+  // 获取动态列表（不再需要userId参数，后端从token解析）
   getPosts(params = {}) {
     return api.get('/posts', { params })
   },
@@ -61,19 +66,19 @@ export const postsAPI = {
     return api.delete(`/posts/${id}`)
   },
 
-  // 点赞/取消点赞
-  toggleLike(id) {
-    return api.post(`/posts/${id}/like`)
+  // 点赞/取消点赞（不再需要userId参数，后端从token解析）
+  toggleLike(id, like = true) {
+    return api.post(`/posts/${id}/like`, { like })
   },
 
-  // 收藏/取消收藏
-  toggleCollect(id) {
-    return api.post(`/posts/${id}/collect`)
+  // 收藏/取消收藏（不再需要userId参数，后端从token解析）
+  toggleCollect(id, collect = true) {
+    return api.post(`/posts/${id}/collect`, { collect })
   },
 
-  // 获取推荐动态
-  getRecommendPosts(userId) {
-    return api.get('/posts/recommend', { params: { userId } })
+  // 获取推荐动态（不再需要userId参数，后端从token解析）
+  getRecommendPosts() {
+    return api.get('/posts/recommend')
   },
 
   // 获取用户动态
@@ -81,12 +86,22 @@ export const postsAPI = {
     return api.get(`/posts/user/${userId}`)
   },
 
+  // 获取用户收藏的动态列表
+  getUserCollections(userId, page = 1, pageSize = 10, sort = 'latest') {
+    return api.get(`/posts/collections/user/${userId}`, {
+      params: { page, pageSize, sort }
+    })
+  },
+
   // 评论相关API
-  getComments(postId) {
-    return api.get(`/posts/${postId}/comments`)
+  getComments(postId, page = 1, pageSize = 20, sort = 'latest') {
+    return api.get(`/posts/${postId}/comments`, {
+      params: { page, pageSize, sort }
+    })
   },
   addComment(postId, data) {
-    return api.post(`/posts/${postId}/comments`, data)
+    // data 只需 content 字段
+    return api.post(`/posts/${postId}/comments`, { content: data.content })
   },
   deleteComment(postId, commentId) {
     return api.delete(`/posts/${postId}/comments/${commentId}`)
@@ -95,12 +110,10 @@ export const postsAPI = {
 
 // 文件上传API
 export const uploadAPI = {
-  // 上传图片
-  uploadImage(file, userId) {
+  // 上传图片（不再需要userId参数，后端从token解析）
+  uploadImage(file) {
     const formData = new FormData()
     formData.append('file', file)
-    formData.append('userId', userId)
-    
     return axios.post('/api/upload/image', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',

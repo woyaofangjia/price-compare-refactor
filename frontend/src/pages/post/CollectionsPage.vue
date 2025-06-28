@@ -1,44 +1,42 @@
 <template>
   <div class="page-container">
-    <TrendingList />
     <div class="page-header">
-      <h1 class="page-title"><i class="fas fa-comments"></i> 动态广场</h1>
-      <router-link to="/post/create" class="btn btn-primary publish-btn">
-        <i class="fas fa-plus"></i> 发布动态
-      </router-link>
-    </div>
-    
-    <!-- 筛选和搜索 -->
-    <div class="filter-section">
-      <div class="search-box">
-        <input 
-          v-model="searchKeyword" 
-          type="text" 
-          placeholder="搜索动态内容..."
-          @input="handleSearch"
-          class="search-input"
-        />
-        <i class="fas fa-search search-icon"></i>
-      </div>
-      <div class="sort-select">
-        <select class="form-control" v-model="sortType" @change="handleSort">
-          <option value="latest">最新发布</option>
-          <option value="likes">最多点赞</option>
-          <option value="comments">最多评论</option>
-        </select>
+      <h1 class="page-title">
+        <i class="fas fa-bookmark"></i> 我的收藏
+      </h1>
+      <div class="header-actions">
+        <div class="sort-select">
+          <select class="form-control" v-model="sortType" @change="handleSort">
+            <option value="latest">最新收藏</option>
+            <option value="oldest">最早收藏</option>
+            <option value="popular">最受欢迎</option>
+          </select>
+        </div>
       </div>
     </div>
 
+    <!-- 用户未登录提示 -->
+    <div v-if="!isLoggedIn" class="empty-state">
+      <div class="empty-icon">
+        <i class="fas fa-user-lock"></i>
+      </div>
+      <h3>请先登录</h3>
+      <p>登录后可以查看您的收藏动态</p>
+      <router-link to="/login" class="btn btn-primary">
+        <i class="fas fa-sign-in-alt"></i> 立即登录
+      </router-link>
+    </div>
+
     <!-- 加载状态 -->
-    <div v-if="loading" class="loading-container">
+    <div v-else-if="loading" class="loading-container">
       <i class="fas fa-spinner fa-spin"></i>
       <p>加载中...</p>
     </div>
 
-    <!-- 动态列表 -->
-    <div v-else-if="posts.length > 0" class="posts-container">
+    <!-- 收藏列表 -->
+    <div v-else-if="collections.length > 0" class="collections-container">
       <DynamicCard
-        v-for="(post, index) in posts"
+        v-for="(post, index) in collections"
         :key="post.id || index"
         :post="post"
         @card-click="openDetail"
@@ -57,10 +55,10 @@
 
     <!-- 空状态 -->
     <div v-else class="empty-state">
-      <i class="fas fa-comments"></i>
-      <p>暂无动态，快来发布第一条动态吧！</p>
-      <router-link to="/post/create" class="btn btn-primary">
-        <i class="fas fa-plus"></i> 发布动态
+      <i class="fas fa-bookmark"></i>
+      <p>暂无收藏动态，快去收藏一些有趣的动态吧！</p>
+      <router-link to="/post/square" class="btn btn-primary">
+        <i class="fas fa-comments"></i> 浏览动态广场
       </router-link>
     </div>
 
@@ -116,24 +114,24 @@
 <script setup>
 import { ref, onMounted, inject, computed } from 'vue'
 import { postsAPI } from '@/api/posts.js'
-import DynamicCard from './components/DynamicCard.vue';
-import TrendingList from './components/TrendingList.vue';
-import DynamicDetailContent from './components/DynamicDetailContent.vue';
+import DynamicCard from './components/DynamicCard.vue'
+import DynamicDetailContent from './components/DynamicDetailContent.vue'
 
 const store = inject('store')
 
 // 响应式数据
-const posts = ref([])
+const collections = ref([])
 const loading = ref(false)
+const isLoggedIn = ref(false)
+const currentUser = ref(null)
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
-const searchKeyword = ref('')
 const sortType = ref('latest')
 const showDetail = ref(false)
 const selectedPost = ref(null)
 const detailComments = ref([])
-const currentUser = ref(null)
+
 // 评论相关状态
 const commentPage = ref(1)
 const commentPageSize = ref(20)
@@ -145,41 +143,40 @@ const commentSubmitting = ref(false)
 // 计算属性
 const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
 
-// 获取动态列表
-async function fetchPosts() {
+// 检查登录状态
+function checkLoginStatus() {
+  const token = localStorage.getItem('token')
+  const user = localStorage.getItem('user')
+  isLoggedIn.value = !!(token && user)
+  if (user) {
+    currentUser.value = JSON.parse(user)
+  }
+}
+
+// 获取收藏列表
+async function fetchCollections() {
+  if (!isLoggedIn.value || !currentUser.value?.id) return
+  
   try {
     loading.value = true
     const params = {
       page: currentPage.value,
       pageSize: pageSize.value,
-      keyword: searchKeyword.value,
       sort: sortType.value
     }
     
-    console.log('请求参数:', params)
-    const response = await postsAPI.getPosts(params)
-    console.log('API响应:', response)
+    const response = await postsAPI.getUserCollections(currentUser.value.id, params.page, params.pageSize, params.sort)
     
     if (response.code === 0) {
-      posts.value = response.data.list
+      collections.value = response.data.list
       total.value = response.data.total
-      
-      // 调试信息：检查每个动态的图片数据
-      posts.value.forEach((post, index) => {
-        console.log(`动态 ${index + 1}:`, {
-          id: post.id,
-          content: post.content,
-          images: post.images,
-          imagesLength: post.images ? post.images.length : 0
-        })
-      })
     } else {
       console.error('API返回错误:', response)
-      if (store) store.showNotification('获取动态列表失败', 'error')
+      if (store) store.showNotification('获取收藏列表失败', 'error')
     }
   } catch (error) {
-    console.error('获取动态列表失败:', error)
-    if (store) store.showNotification('获取动态列表失败', 'error')
+    console.error('获取收藏列表失败:', error)
+    if (store) store.showNotification('获取收藏列表失败', 'error')
   } finally {
     loading.value = false
   }
@@ -187,28 +184,14 @@ async function fetchPosts() {
 
 // 处理点赞
 async function handleLike(postId) {
-  if (!postId) {
-    console.error('点赞失败：postId无效', postId)
-    if (store) store.showNotification('点赞失败：动态ID无效', 'error')
-    return
-  }
-  
-  const token = localStorage.getItem('token')
-  if (!token) {
-    console.error('点赞失败：用户未登录')
-    if (store) store.showNotification('请先登录', 'error')
-    return
-  }
-  
   try {
-    // 找到当前动态，获取其点赞状态
-    const currentPost = posts.value.find(p => p.id === postId)
+    const currentPost = collections.value.find(p => p.id === postId)
     const currentIsLiked = currentPost?.isLiked || false
     
     const response = await postsAPI.toggleLike(postId, !currentIsLiked)
     if (response.code === 0) {
       // 更新主列表
-      const post = posts.value.find(p => p.id === postId)
+      const post = collections.value.find(p => p.id === postId)
       if (post) {
         post.likes = response.data.likes
         post.isLiked = response.data.isLiked
@@ -217,7 +200,6 @@ async function handleLike(postId) {
       if (selectedPost.value && selectedPost.value.id === postId) {
         selectedPost.value.likes = response.data.likes
         selectedPost.value.isLiked = response.data.isLiked
-        // 如果selectedPost不是posts里的引用，强制刷新
         if (selectedPost.value !== post) {
           selectedPost.value = { ...selectedPost.value }
         }
@@ -238,14 +220,13 @@ async function handleLike(postId) {
 // 处理收藏
 async function handleCollect(postId) {
   try {
-    // 找到当前动态，获取其收藏状态
-    const currentPost = posts.value.find(p => p.id === postId)
+    const currentPost = collections.value.find(p => p.id === postId)
     const currentIsCollected = currentPost?.isCollected || false
     
     const response = await postsAPI.toggleCollect(postId, !currentIsCollected)
     if (response.code === 0) {
       // 更新主列表
-      const post = posts.value.find(p => p.id === postId)
+      const post = collections.value.find(p => p.id === postId)
       if (post) {
         post.isCollected = response.data.isCollected
       }
@@ -256,6 +237,16 @@ async function handleCollect(postId) {
           selectedPost.value = { ...selectedPost.value }
         }
       }
+      
+      // 如果取消收藏，从列表中移除
+      if (!response.data.isCollected) {
+        collections.value = collections.value.filter(p => p.id !== postId)
+        total.value = Math.max(0, total.value - 1)
+        if (selectedPost.value && selectedPost.value.id === postId) {
+          closeDetail()
+        }
+      }
+      
       if (store) store.showNotification(
         response.data.isCollected ? '收藏成功' : '取消收藏', 
         'success'
@@ -275,9 +266,9 @@ async function handleDelete(postId) {
     const response = await postsAPI.deletePost(postId)
     if (response.code === 0) {
       // 从本地列表中移除
-      const index = posts.value.findIndex(p => p.id === postId)
+      const index = collections.value.findIndex(p => p.id === postId)
       if (index !== -1) {
-        posts.value.splice(index, 1)
+        collections.value.splice(index, 1)
       }
       
       // 如果删除的是当前查看的详情，关闭详情
@@ -295,30 +286,24 @@ async function handleDelete(postId) {
   }
 }
 
-// 搜索处理
-function handleSearch() {
-  currentPage.value = 1
-  fetchPosts()
-}
-
 // 排序处理
 function handleSort() {
   currentPage.value = 1
-  fetchPosts()
+  fetchCollections()
 }
 
 // 分页处理
 function prevPage() {
   if (currentPage.value > 1) {
     currentPage.value--
-    fetchPosts()
+    fetchCollections()
   }
 }
 
 function nextPage() {
   if (currentPage.value < totalPages.value) {
     currentPage.value++
-    fetchPosts()
+    fetchCollections()
   }
 }
 
@@ -388,7 +373,7 @@ async function onSubmitComment(comment) {
       commentPage.value = 1
       await fetchComments(selectedPost.value.id)
       // 更新主列表评论数
-      const post = posts.value.find(p => p.id === selectedPost.value.id)
+      const post = collections.value.find(p => p.id === selectedPost.value.id)
       if (post) {
         post.comments = (post.comments || 0) + 1
       }
@@ -419,7 +404,7 @@ async function onDeleteComment(commentId) {
       // 重新加载评论列表
       await fetchComments(selectedPost.value.id)
       // 更新主列表评论数
-      const post = posts.value.find(p => p.id === selectedPost.value.id)
+      const post = collections.value.find(p => p.id === selectedPost.value.id)
       if (post) {
         post.comments = Math.max(0, (post.comments || 0) - 1)
       }
@@ -440,23 +425,24 @@ async function onDeleteComment(commentId) {
   }
 }
 
-// 获取当前用户信息
-function getCurrentUser() {
-  const user = localStorage.getItem('user')
-  if (user) {
-    currentUser.value = JSON.parse(user)
-  }
-}
-
 // 生命周期
 onMounted(() => {
-  getCurrentUser()
-  fetchPosts()
+  checkLoginStatus()
+  if (isLoggedIn.value) {
+    fetchCollections()
+  }
+  
+  // 监听登录状态变化
+  window.addEventListener('loginStatusChanged', () => {
+    checkLoginStatus()
+    if (isLoggedIn.value) {
+      fetchCollections()
+    }
+  })
   
   // 监听页面可见性变化，确保数据同步
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && showDetail.value && selectedPost.value) {
-      // 页面重新可见时，刷新评论数据
       fetchComments(selectedPost.value.id)
     }
   })
@@ -464,6 +450,12 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
 .page-header {
   display: flex;
   justify-content: space-between;
@@ -471,48 +463,26 @@ onMounted(() => {
   margin-bottom: 25px;
 }
 
-.publish-btn {
-  margin-left: auto;
-  float: right;
-}
-
-.filter-section {
+.page-title {
+  font-size: 1.8rem;
+  margin: 0;
+  color: var(--primary);
   display: flex;
-  gap: 15px;
-  margin-bottom: 20px;
   align-items: center;
 }
 
-.search-box {
-  position: relative;
-  flex: 1;
+.page-title i {
+  margin-right: 10px;
 }
 
-.search-input {
-  width: 100%;
-  padding: 10px 40px 10px 15px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 14px;
-}
-
-.search-icon {
-  position: absolute;
-  right: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #999;
+.header-actions {
+  display: flex;
+  gap: 15px;
+  align-items: center;
 }
 
 .sort-select {
   min-width: 120px;
-}
-
-.form-control {
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 14px;
 }
 
 .loading-container {
@@ -529,82 +499,123 @@ onMounted(() => {
 .empty-state {
   text-align: center;
   padding: 60px 20px;
-  color: #666;
+  color: #999;
 }
 
 .empty-state i {
-  font-size: 3rem;
-  margin-bottom: 15px;
-  color: #ddd;
+  font-size: 4rem;
+  margin-bottom: 20px;
+  display: block;
+}
+
+.empty-state h3 {
+  margin-bottom: 10px;
+  color: #666;
 }
 
 .empty-state p {
   margin-bottom: 20px;
-  font-size: 1.1rem;
+  color: #999;
+}
+
+.collections-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 30px;
 }
 
 .pagination {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 15px;
+  gap: 20px;
   margin-top: 30px;
 }
 
 .page-info {
-  font-size: 14px;
+  font-weight: 600;
   color: #666;
 }
 
-.posts-container {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--secondary);
+  transform: translateY(-2px);
+}
+
+.btn-outline {
   background: none;
-  box-shadow: none;
-  padding: 0;
+  border: 1px solid var(--primary);
+  color: var(--primary);
 }
 
-@media (max-width: 1000px) {
-  .posts-container {
-    gap: 15px;
-  }
-  
-  .filter-section {
-    flex-direction: column;
-    align-items: stretch;
-  }
+.btn-outline:hover:not(:disabled) {
+  background: var(--primary);
+  color: white;
 }
 
+.btn-outline:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 详情弹窗样式 */
 .detail-dialog-mask {
   position: fixed;
-  left: 0; top: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.18);
-  z-index: 1000;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
 
 .detail-dialog {
-  background: #fff;
+  background: white;
   border-radius: 12px;
-  padding: 32px 24px 24px 24px;
-  min-width: 340px;
-  max-width: 420px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
   position: relative;
+  padding: 20px;
 }
 
 .close-btn {
   position: absolute;
-  right: 18px;
-  top: 12px;
-  background: #eee;
+  top: 10px;
+  right: 10px;
+  background: none;
   border: none;
-  border-radius: 6px;
-  padding: 4px 12px;
+  font-size: 1.5rem;
   cursor: pointer;
+  color: #999;
+  padding: 5px;
+  border-radius: 4px;
+  transition: all 0.2s;
 }
-</style>
+
+.close-btn:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+</style> 
