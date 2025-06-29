@@ -42,10 +42,13 @@
         <div class="overview-content">
           <div class="price-stats">
             <div class="stat-card">
+<<<<<<< Updated upstream
               <div class="stat-label">当前价格</div>
               <div class="stat-value current">{{ product?.price || '—' }}元</div>
             </div>
             <div class="stat-card">
+=======
+>>>>>>> Stashed changes
               <div class="stat-label">历史最低</div>
               <div class="stat-value low">{{ priceStats?.minPrice || '—' }}元</div>
             </div>
@@ -727,7 +730,11 @@ async function saveAlertPrice() {
 
 .price-stats {
   display: grid;
+<<<<<<< Updated upstream
   grid-template-columns: 1fr 1fr;
+=======
+  grid-template-columns: 1fr;
+>>>>>>> Stashed changes
   gap: 15px;
 }
 
@@ -799,7 +806,11 @@ async function saveAlertPrice() {
   }
   
   .price-stats {
+<<<<<<< Updated upstream
     grid-template-columns: 1fr 1fr;
+=======
+    grid-template-columns: 1fr;
+>>>>>>> Stashed changes
   }
 }
 

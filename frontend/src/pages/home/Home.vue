@@ -55,9 +55,6 @@
           <div class="product-info">
             <div class="product-title">{{ item.title }}</div>
             <div class="product-price">{{ item.price }}</div>
-            <div :class="['price-change', item.priceChange > 0 ? 'price-up' : 'price-down']">
-              {{ item.priceChange > 0 ? '涨' : '降' }} {{ Math.abs(item.priceChange) }}%
-            </div>
             <div class="platform-tags">
               <span class="platform-tag" v-for="tag in item.platforms" :key="tag">{{ tag }}</span>
             </div>
@@ -73,7 +70,6 @@
           <div class="product-info">
             <div class="product-title">{{ item.title }}</div>
             <div class="product-price">{{ item.price }} <span v-if="item.oldPrice" style="text-decoration: line-through; color: var(--gray); font-size: 0.9rem;">{{ item.oldPrice }}</span></div>
-            <div class="price-change price-down">降 {{ item.priceChange }}%</div>
             <div class="platform-tags">
               <span class="platform-tag" v-for="tag in item.platforms" :key="tag">{{ tag }}</span>
             </div>

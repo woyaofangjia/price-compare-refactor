@@ -8,7 +8,11 @@
             class="favorite-item"
             v-for="item in favorites"
             :key="item.id"
+<<<<<<< Updated upstream
             @click="goToProduct(item.product_id)"
+=======
+            @click="goToProduct(item.productId)"
+>>>>>>> Stashed changes
             style="cursor:pointer;"
           >
             <div class="favorite-image">

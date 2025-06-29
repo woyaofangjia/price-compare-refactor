@@ -38,7 +38,11 @@
               @click="selectProduct(product.id)"
             >
               <div class="product-image">
+<<<<<<< Updated upstream
                 <img :src="product.img || product.image || defaultImg" :alt="product.title" @error="onImgError" />
+=======
+                <img :src="getSafeImageUrl(product)" :alt="product.title" @error="onImgError" />
+>>>>>>> Stashed changes
               </div>
               <div class="product-info">
                 <h4>{{ product.title }}</h4>
@@ -67,7 +71,11 @@
         <div class="product-header">
           <div class="product-info-card">
             <div class="product-image-large">
+<<<<<<< Updated upstream
               <img :src="selectedProduct.img || selectedProduct.image || defaultImg" :alt="selectedProduct.title" @error="onImgError" />
+=======
+              <img :src="getSafeImageUrl(selectedProduct)" :alt="selectedProduct.title" @error="onImgError" />
+>>>>>>> Stashed changes
             </div>
             <div class="product-details">
               <h3>{{ selectedProduct.title }}</h3>
@@ -250,14 +258,24 @@ async function selectProductType(type) {
       // 验证收藏商品的有效性
       const validFavorites = []
       for (const favorite of favoritesData) {
+<<<<<<< Updated upstream
         if (!favorite || !favorite.product_id) {
+=======
+        if (!favorite || !favorite.productId) {
+>>>>>>> Stashed changes
           console.warn('发现无效收藏记录:', favorite)
           continue
         }
         
+<<<<<<< Updated upstream
         // 验证商品是否存在（可选，如果API支持的话）
         try {
           const productCheckRes = await fetch(`/api/products/${favorite.product_id}`, {
+=======
+        // 验证商品是否存在
+        try {
+          const productCheckRes = await fetch(`/api/products/${favorite.productId}`, {
+>>>>>>> Stashed changes
             signal: controller.signal,
             headers: { 'Content-Type': 'application/json' }
           })
@@ -269,11 +287,19 @@ async function selectProductType(type) {
               ...productData // 合并商品信息
             })
           } else {
+<<<<<<< Updated upstream
             console.warn('收藏的商品不存在，跳过:', favorite.product_id)
           }
         } catch (checkError) {
           console.warn('验证商品时出错，跳过:', favorite.product_id, checkError)
           // 如果验证失败，仍然保留该收藏记录
+=======
+            console.warn('收藏的商品不存在，跳过:', favorite.productId)
+          }
+        } catch (checkError) {
+          console.warn('验证收藏商品时出错，跳过:', favorite.productId, checkError)
+          // 如果验证失败，仍然保留该商品
+>>>>>>> Stashed changes
           validFavorites.push(favorite)
         }
       }
@@ -337,14 +363,39 @@ function selectProduct(id) {
   
   // 用户手动选择商品后，获取图表数据
   console.log('开始获取选中商品的图表数据...')
+<<<<<<< Updated upstream
+=======
+  
+  // 使用商品ID获取图表数据
+>>>>>>> Stashed changes
   fetchChartData(id)
 }
 
 // 图片加载错误处理
 function onImgError(e) {
+<<<<<<< Updated upstream
   e.target.src = defaultImg
 }
 
+=======
+  console.log('图片加载失败，使用默认图片:', e.target.src)
+  e.target.src = defaultImg
+}
+
+// 获取安全的图片URL
+function getSafeImageUrl(product) {
+  const imgUrl = product.img || product.image || product.avatar || ''
+  
+  // 如果是有效的URL，直接返回
+  if (imgUrl && (imgUrl.startsWith('http') || imgUrl.startsWith('/'))) {
+    return imgUrl
+  }
+  
+  // 如果是无效的URL，返回默认图片
+  return defaultImg
+}
+
+>>>>>>> Stashed changes
 // 刷新图表数据
 async function refreshChart() {
   if (selectedId.value) {
@@ -383,6 +434,10 @@ async function fetchChartData(id) {
   if (!id) return
   try {
     console.log('开始获取图表数据，商品ID:', id)
+<<<<<<< Updated upstream
+=======
+    console.log('当前可用商品列表:', availableProducts.value.map(p => ({ id: p.id, title: p.title })))
+>>>>>>> Stashed changes
     
     // 设置超时时间
     const controller = new AbortController()
@@ -397,6 +452,11 @@ async function fetchChartData(id) {
     
     // 同时获取图表数据和最新商品信息
     console.log('正在获取图表数据和商品信息...')
+<<<<<<< Updated upstream
+=======
+    console.log('请求URL:', `/api/products/${id}/chart-data`, `/api/products/${id}`)
+    
+>>>>>>> Stashed changes
     const [chartRes, productRes] = await Promise.all([
       fetch(`/api/products/${id}/chart-data`, fetchOptions),
       fetch(`/api/products/${id}`, fetchOptions)
@@ -417,6 +477,7 @@ async function fetchChartData(id) {
       const productError = await productRes.json().catch(() => ({}))
       console.error('商品信息API错误:', productError)
       
+<<<<<<< Updated upstream
       // 如果是商品不存在错误，从可用列表中移除该商品
       if (productError.error === '商品不存在' || productError.message?.includes('商品不存在')) {
         console.warn('商品不存在，从可用列表中移除:', id)
@@ -450,6 +511,36 @@ async function fetchChartData(id) {
           
           throw new Error('商品不存在或已被删除')
         }
+=======
+      // 从可用商品列表中移除不存在的商品
+      const productIndex = availableProducts.value.findIndex(p => p.id === id)
+      if (productIndex !== -1) {
+        const removedProduct = availableProducts.value.splice(productIndex, 1)[0]
+        console.log('已移除不存在的商品:', removedProduct)
+        
+        // 如果当前选中的商品被移除，清除选择
+        if (selectedId.value === id) {
+          selectedId.value = null
+          comparisonData.value = {}
+          monthlyData.value = []
+          
+          // 销毁图表
+          if (comparisonChart) {
+            comparisonChart.destroy()
+            comparisonChart = null
+          }
+          if (fluctuationChart) {
+            fluctuationChart.destroy()
+            fluctuationChart = null
+          }
+          
+          // 提示用户重新选择，不自动选择下一个
+          console.log('当前商品已被删除，请用户重新选择')
+          alert('该商品已被删除，请重新选择其他商品')
+        }
+        
+        throw new Error('商品不存在或已被删除')
+>>>>>>> Stashed changes
       }
       
       throw new Error(`获取商品信息失败: ${productRes.status} ${productRes.statusText}`)
@@ -614,7 +705,23 @@ function renderCharts() {
   comparisonChart = new window.Chart(comparisonCtx, {
     type: 'line',
     data: {
+<<<<<<< Updated upstream
       labels: (comparisonData.value['京东'] || []).map(item => item.date),
+=======
+      labels: (comparisonData.value['京东'] || []).map(item => {
+        // 格式化日期，去除时间戳后缀
+        const date = item.date
+        if (date && typeof date === 'string') {
+          // 如果是ISO格式的日期字符串，只取日期部分
+          if (date.includes('T')) {
+            return date.split('T')[0]
+          }
+          // 如果是其他格式，直接返回
+          return date
+        }
+        return date
+      }),
+>>>>>>> Stashed changes
       datasets: Object.keys(comparisonData.value).map(platform => ({
         label: platform,
         data: comparisonData.value[platform].map(item => item.price),

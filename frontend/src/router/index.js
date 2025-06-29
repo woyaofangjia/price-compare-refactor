@@ -32,6 +32,10 @@ const routes = [
   { path: '/post/create', name: 'PostCreate', component: PostDynamicPage, meta: { requiresAuth: true } },
   { path: '/collections', name: 'Collections', component: CollectionsPage, meta: { requiresAuth: true } },
   { path: '/auth', name: 'Auth', component: Auth },
+<<<<<<< Updated upstream
+=======
+  { path: '/product/:id', name: 'ProductDetail', component: Detail },
+>>>>>>> Stashed changes
   {
     path: '/admin',
     component: Admin,
