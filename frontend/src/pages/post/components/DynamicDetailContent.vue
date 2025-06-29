@@ -10,7 +10,7 @@
     <div class="detail-content">
       <div class="content-text">{{ post.content }}</div>
       <div v-if="post.images && post.images.length" class="images-grid">
-        <img v-for="(img, idx) in post.images" :key="idx" :src="img" class="detail-image" />
+        <img v-for="(img, idx) in post.images" :key="idx" :src="getFullImageUrl(img)" class="detail-image" />
       </div>
       <div v-if="post.product" class="product-card">
         <img :src="post.product.image" class="product-image-large" />
@@ -225,6 +225,12 @@ function handleCommentAvatarError(event) {
 // 处理当前用户头像加载错误
 function handleCurrentUserAvatarError(event) {
   handleAvatarError(event)
+}
+
+function getFullImageUrl(url) {
+  if (!url) return ''
+  if (url.startsWith('http')) return url
+  return 'http://localhost:3000' + url
 }
 </script>
 

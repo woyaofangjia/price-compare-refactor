@@ -28,7 +28,7 @@
         <img 
           v-for="(img, index) in post.images" 
           :key="index" 
-          :src="img" 
+          :src="getFullImageUrl(img)" 
           class="content-image" 
           :alt="`图片${index + 1}`"
         />
@@ -107,6 +107,12 @@ function handleDelete() {
   if (confirm('确定要删除这条动态吗？')) {
     emit('delete', props.post.id)
   }
+}
+
+function getFullImageUrl(url) {
+  if (!url) return ''
+  if (url.startsWith('http')) return url
+  return 'http://localhost:3000' + url
 }
 </script>
 

@@ -71,7 +71,7 @@
               <img 
                 v-for="(img, imgIndex) in post.images" 
                 :key="imgIndex" 
-                :src="img" 
+                :src="getFullImageUrl(img)" 
                 :alt="`图片${imgIndex + 1}`"
                 class="content-image"
                 @click.stop="previewImage(img)"
@@ -455,6 +455,12 @@ async function collectPost(postId) {
 
 function closeDetail() {
   showDetail.value = false
+}
+
+function getFullImageUrl(url) {
+  if (!url) return ''
+  if (url.startsWith('http')) return url
+  return 'http://localhost:3000' + url
 }
 
 onMounted(() => {

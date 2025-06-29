@@ -27,7 +27,7 @@
       
       <div v-if="images.length > 0" class="preview-grid">
         <div class="preview-item" v-for="(img, index) in images" :key="index">
-          <img :src="img" class="preview-img" />
+          <img :src="getFullImageUrl(img)" class="preview-img" />
           <div class="remove-btn" @click.stop="removeImage(index)">
             <i class="fas fa-times"></i>
           </div>
@@ -153,6 +153,12 @@ async function addImage() {
 
 function removeImage(index) {
   images.value.splice(index, 1)
+}
+
+function getFullImageUrl(url) {
+  if (!url) return ''
+  if (url.startsWith('http')) return url
+  return 'http://localhost:3000' + url
 }
 
 async function submitPost() {
