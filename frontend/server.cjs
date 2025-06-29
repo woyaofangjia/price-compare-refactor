@@ -103,7 +103,13 @@ function authenticateToken(req, res, next) {
 
   // 这里简化处理，实际应该验证JWT
   if (token.startsWith('mock-jwt-token-')) {
-    const user = users.find(u => u.id === 1); // 简化处理，假设都是admin用户
+    // 从token中提取用户ID（简化处理）
+    // 实际项目中应该从JWT中解析用户信息
+    const user = users.find(u => u.id === 1); // 默认使用admin用户
+    if (!user) {
+      return res.status(403).json({ code: 1, message: '用户不存在' });
+    }
+    
     req.user = { 
       id: user.id, 
       username: user.username,
@@ -688,12 +694,17 @@ app.get('/products/:id/chart-data', (req, res) => {
 });
 
 // 获取用户收藏
-app.get('/favorites', authenticateToken, (req, res) => {
+app.get('/favorites', (req, res) => {
   const userId = parseInt(req.query.userId);
   
-  // 验证用户权限
-  if (req.user.id !== userId) {
-    return res.status(403).json({ code: 1, message: '无权限查看其他用户的收藏' });
+  if (!userId) {
+    return res.status(400).json({ code: 1, message: '用户ID不能为空' });
+  }
+  
+  // 验证用户是否存在
+  const user = users.find(u => u.id === userId);
+  if (!user) {
+    return res.status(404).json({ code: 1, message: '用户不存在' });
   }
   
   const userFavorites = favorites.filter(f => f.user_id === userId);
@@ -701,23 +712,33 @@ app.get('/favorites', authenticateToken, (req, res) => {
   // 获取收藏的商品详情
   const favoriteProducts = userFavorites.map(favorite => {
     const product = products.find(p => p.id === favorite.product_id);
-    return product ? { 
-      ...product, 
-      favorite_id: favorite.id,
+    return product ? {
+      ...product,
+      id: favorite.id, // 收藏记录ID
+      productId: product.id, // 商品ID
       alertPrice: favorite.alertPrice || null
     } : null;
   }).filter(Boolean);
   
-  res.json(favoriteProducts);
+  res.json({
+    code: 0,
+    message: '获取成功',
+    data: favoriteProducts
+  });
 });
 
 // 添加收藏
-app.post('/favorites', authenticateToken, (req, res) => {
-  const { productId } = req.body;
-  const userId = req.user.id;
+app.post('/favorites', (req, res) => {
+  const { productId, userId } = req.body;
   
-  if (!productId) {
-    return res.status(400).json({ code: 1, message: '商品ID不能为空' });
+  if (!productId || !userId) {
+    return res.status(400).json({ code: 1, message: '商品ID和用户ID不能为空' });
+  }
+  
+  // 验证用户是否存在
+  const user = users.find(u => u.id === parseInt(userId));
+  if (!user) {
+    return res.status(404).json({ code: 1, message: '用户不存在' });
   }
   
   // 检查商品是否存在
@@ -727,7 +748,7 @@ app.post('/favorites', authenticateToken, (req, res) => {
   }
   
   // 检查是否已经收藏
-  const existingFavorite = favorites.find(f => f.user_id === userId && f.product_id === parseInt(productId));
+  const existingFavorite = favorites.find(f => f.user_id === parseInt(userId) && f.product_id === parseInt(productId));
   if (existingFavorite) {
     return res.status(400).json({ code: 1, message: '该商品已经收藏过了' });
   }
@@ -735,7 +756,7 @@ app.post('/favorites', authenticateToken, (req, res) => {
   // 创建新收藏
   const newFavorite = {
     id: favorites.length + 1,
-    user_id: userId,
+    user_id: parseInt(userId),
     product_id: parseInt(productId),
     alertPrice: null,
     created_at: new Date().toISOString()
@@ -751,9 +772,19 @@ app.post('/favorites', authenticateToken, (req, res) => {
 });
 
 // 删除收藏
-app.delete('/favorites/:favoriteId', authenticateToken, (req, res) => {
+app.delete('/favorites/:favoriteId', (req, res) => {
   const favoriteId = parseInt(req.params.favoriteId);
-  const userId = req.user.id;
+  const userId = parseInt(req.query.userId);
+  
+  if (!userId) {
+    return res.status(400).json({ code: 1, message: '用户ID不能为空' });
+  }
+  
+  // 验证用户是否存在
+  const user = users.find(u => u.id === userId);
+  if (!user) {
+    return res.status(404).json({ code: 1, message: '用户不存在' });
+  }
   
   const favoriteIndex = favorites.findIndex(f => f.id === favoriteId && f.user_id === userId);
   
@@ -770,13 +801,22 @@ app.delete('/favorites/:favoriteId', authenticateToken, (req, res) => {
 });
 
 // 检查收藏状态
-app.get('/favorites/check', authenticateToken, (req, res) => {
+app.get('/favorites/check', (req, res) => {
   const userId = parseInt(req.query.userId);
   const productId = parseInt(req.query.productId);
   
-  // 验证用户权限
-  if (req.user.id !== userId) {
-    return res.status(403).json({ code: 1, message: '无权限查看其他用户的收藏' });
+  if (!userId) {
+    return res.status(400).json({ code: 1, message: '用户ID不能为空' });
+  }
+  
+  if (!productId) {
+    return res.status(400).json({ code: 1, message: '商品ID不能为空' });
+  }
+  
+  // 验证用户是否存在
+  const user = users.find(u => u.id === userId);
+  if (!user) {
+    return res.status(404).json({ code: 1, message: '用户不存在' });
   }
   
   const favorite = favorites.find(f => f.user_id === userId && f.product_id === productId);
@@ -786,16 +826,27 @@ app.get('/favorites/check', authenticateToken, (req, res) => {
     message: '检查成功',
     data: {
       exists: !!favorite,
-      id: favorite ? favorite.id : null
+      id: favorite ? favorite.id : null,
+      alertPrice: favorite ? favorite.alertPrice : null
     }
   });
 });
 
 // 设置提醒价格
-app.put('/favorites/:favoriteId/alert', authenticateToken, (req, res) => {
+app.put('/favorites/:favoriteId/alert', (req, res) => {
   const favoriteId = parseInt(req.params.favoriteId);
   const { alertPrice } = req.body;
-  const userId = req.user.id;
+  const userId = parseInt(req.query.userId);
+  
+  if (!userId) {
+    return res.status(400).json({ code: 1, message: '用户ID不能为空' });
+  }
+  
+  // 验证用户是否存在
+  const user = users.find(u => u.id === userId);
+  if (!user) {
+    return res.status(404).json({ code: 1, message: '用户不存在' });
+  }
   
   const favorite = favorites.find(f => f.id === favoriteId && f.user_id === userId);
   

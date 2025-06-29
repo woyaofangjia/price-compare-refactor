@@ -42,13 +42,6 @@
         <div class="overview-content">
           <div class="price-stats">
             <div class="stat-card">
-<<<<<<< Updated upstream
-              <div class="stat-label">当前价格</div>
-              <div class="stat-value current">{{ product?.price || '—' }}元</div>
-            </div>
-            <div class="stat-card">
-=======
->>>>>>> Stashed changes
               <div class="stat-label">历史最低</div>
               <div class="stat-value low">{{ priceStats?.minPrice || '—' }}元</div>
             </div>
@@ -149,22 +142,54 @@ async function checkFavorite() {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 10000) // 10秒超时
     
+    console.log('检查收藏状态，商品ID:', id, '用户ID:', userId)
     const res = await fetch(`/api/favorites/check?userId=${userId}&productId=${id}`, {
-      signal: controller.signal
+      signal: controller.signal,
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
     })
     
     clearTimeout(timeoutId)
     
-    const data = await res.json()
-    isFavorite.value = !!data.exists
-    favoriteId.value = data.id || null
-    // 获取提醒价格
-    if (data.exists && data.alertPrice) {
-      alertPrice.value = data.alertPrice
+    const response = await res.json()
+    console.log('收藏状态检查响应:', response)
+    
+    // 处理标准格式响应
+    if (response.code === 0 && response.data) {
+      // 标准格式：{code: 0, data: {exists: true, id: 66}}
+      isFavorite.value = !!response.data.exists
+      favoriteId.value = response.data.id || null
+      if (response.data.exists && response.data.alertPrice) {
+        alertPrice.value = response.data.alertPrice
+      }
+      console.log('标准格式解析结果 - 已收藏:', isFavorite.value, '收藏ID:', favoriteId.value)
+    } else if (response.data && typeof response.data.exists !== 'undefined') {
+      // 新格式：{data: {exists: true, id: 66}}
+      isFavorite.value = !!response.data.exists
+      favoriteId.value = response.data.id || null
+      if (response.data.exists && response.data.alertPrice) {
+        alertPrice.value = response.data.alertPrice
+      }
+      console.log('新格式解析结果 - 已收藏:', isFavorite.value, '收藏ID:', favoriteId.value)
+    } else if (response.duplicate && response.id) {
+      // 旧格式：{message: "该商品已收藏", id: 66, duplicate: true}
+      isFavorite.value = true
+      favoriteId.value = response.id
+      console.log('旧格式解析结果 - 已收藏:', isFavorite.value, '收藏ID:', favoriteId.value)
+    } else if (response.exists && response.id) {
+      // 新发现的格式：{exists: true, id: 66, message: '该商品已收藏'}
+      isFavorite.value = !!response.exists
+      favoriteId.value = response.id || null
+      console.log('新发现格式解析结果 - 已收藏:', isFavorite.value, '收藏ID:', favoriteId.value)
+    } else {
+      // 默认处理
+      isFavorite.value = false
+      favoriteId.value = null
+      console.log('默认处理 - 未收藏')
     }
   } catch (error) {
     console.error('检查收藏状态失败:', error)
-    // 收藏状态检查失败不影响页面显示，静默处理
     isFavorite.value = false
     favoriteId.value = null
   }
@@ -182,7 +207,8 @@ async function getPriceStats(productId) {
     const res = await fetch(`/api/products/${productId}/chart-data?enhanced=true`, {
       signal: controller.signal,
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
     })
     
@@ -316,7 +342,8 @@ onMounted(async () => {
     const fetchOptions = {
       signal: controller.signal,
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
     }
     
@@ -396,14 +423,17 @@ async function addToFavorites() {
   }
   const res = await fetch('/api/favorites', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    },
     body: JSON.stringify({ productId: id, userId: userId })
   })
   if (res.ok) {
     await checkFavorite()
     alert('收藏成功！')
   } else {
-    const data = await res.json()
+    const data = await res.json().catch(() => ({}))
     alert(data.message || '收藏失败')
   }
 }
@@ -413,12 +443,17 @@ async function removeFromFavorites() {
     alert('参数有误')
     return
   }
-  const res = await fetch(`/api/favorites/${favoriteId.value}`, { method: 'DELETE' })
+  const res = await fetch(`/api/favorites/${favoriteId.value}?userId=${userId}`, { 
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    }
+  })
   if (res.ok) {
     await checkFavorite()
     alert('已取消收藏')
   } else {
-    const data = await res.json()
+    const data = await res.json().catch(() => ({}))
     alert(data.message || '取消收藏失败')
   }
 }
@@ -436,32 +471,89 @@ async function saveAlertPrice() {
   }
 
   try {
+    let currentFavoriteId = favoriteId.value
+    console.log('开始设置提醒价格，商品ID:', id, '当前收藏ID:', currentFavoriteId)
+
     // 如果商品未收藏，先收藏
     if (!isFavorite.value) {
+      console.log('商品未收藏，先进行收藏...')
       const favRes = await fetch('/api/favorites', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify({ productId: id, userId: userId })
       })
       if (!favRes.ok) {
-        throw new Error('收藏商品失败')
+        const errorData = await favRes.json().catch(() => ({}))
+        throw new Error(errorData.message || '收藏商品失败')
       }
-      await checkFavorite()
+      
+      // 从收藏响应中获取favoriteId
+      const favData = await favRes.json()
+      console.log('收藏响应数据:', favData)
+      
+      // 处理不同的收藏响应格式
+      if (favData.code === 0 && favData.data && favData.data.id) {
+        // 标准格式：{code: 0, data: {id: 66}}
+        currentFavoriteId = favData.data.id
+      } else if (favData.data && favData.data.id) {
+        // 新格式：{data: {id: 66}}
+        currentFavoriteId = favData.data.id
+      } else if (favData.id) {
+        // 直接返回ID格式：{id: 66, message: '该商品已收藏'}
+        currentFavoriteId = favData.id
+      } else {
+        // 如果收藏API返回的是已收藏状态，需要重新检查收藏状态
+        console.log('收藏API返回已收藏状态，重新检查收藏状态...')
+        await checkFavorite()
+        currentFavoriteId = favoriteId.value
+      }
+      
+      // 更新本地状态
+      isFavorite.value = true
+      favoriteId.value = currentFavoriteId
+      
+      console.log('收藏成功，获取到的收藏ID:', currentFavoriteId)
+      
+      // 确保favoriteId已获取
+      if (!currentFavoriteId) {
+        throw new Error('收藏成功但无法获取收藏ID，请重试')
+      }
+    } else {
+      console.log('商品已收藏，使用现有收藏ID:', currentFavoriteId)
     }
 
+    // 等待一下让数据库更新
+    await new Promise(resolve => setTimeout(resolve, 500))
+
     // 保存提醒价格
-    const alertRes = await fetch(`/api/favorites/${favoriteId.value}/alert`, {
+    console.log('开始设置提醒价格，收藏ID:', currentFavoriteId, '提醒价格:', tempAlertPrice.value)
+    console.log('请求URL:', `/api/favorites/${currentFavoriteId}/alert?userId=${userId}`)
+    console.log('请求体:', { alertPrice: parseFloat(tempAlertPrice.value) })
+    
+    const alertRes = await fetch(`/api/favorites/${currentFavoriteId}/alert?userId=${userId}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
       body: JSON.stringify({ alertPrice: parseFloat(tempAlertPrice.value) })
     })
 
+    console.log('提醒价格API响应状态:', alertRes.status, alertRes.statusText)
+    
     if (alertRes.ok) {
+      const successData = await alertRes.json()
+      console.log('提醒价格设置成功，响应:', successData)
       alertPrice.value = parseFloat(tempAlertPrice.value)
       showAlertModal.value = false
       alert('价格提醒设置成功！')
     } else {
-      const data = await alertRes.json()
+      const data = await alertRes.json().catch(() => ({}))
+      console.error('设置提醒失败，响应:', data)
+      console.error('响应状态:', alertRes.status, alertRes.statusText)
       throw new Error(data.message || '设置提醒失败')
     }
   } catch (error) {
@@ -683,8 +775,7 @@ async function saveAlertPrice() {
 @media (max-width: 768px) {
   .product-detail {
     grid-template-columns: 1fr;
-    gap: 20px;
-}
+  }
   
   .action-buttons {
     flex-direction: column;
@@ -729,12 +820,8 @@ async function saveAlertPrice() {
 }
 
 .price-stats {
-  display: grid;
-<<<<<<< Updated upstream
-  grid-template-columns: 1fr 1fr;
-=======
-  grid-template-columns: 1fr;
->>>>>>> Stashed changes
+  display: flex;
+  flex-direction: column;
   gap: 15px;
 }
 
@@ -802,20 +889,6 @@ async function saveAlertPrice() {
   }
   
   .overview-content {
-    grid-template-columns: 1fr;
-  }
-  
-  .price-stats {
-<<<<<<< Updated upstream
-    grid-template-columns: 1fr 1fr;
-=======
-    grid-template-columns: 1fr;
->>>>>>> Stashed changes
-  }
-}
-
-@media (max-width: 480px) {
-  .price-stats {
     grid-template-columns: 1fr;
   }
 }
