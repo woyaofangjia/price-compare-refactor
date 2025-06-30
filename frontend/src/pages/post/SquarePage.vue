@@ -187,39 +187,33 @@ async function fetchPosts() {
 
 // 处理点赞
 async function handleLike(postId) {
-  if (!postId) {
-    console.error('点赞失败：postId无效', postId)
-    if (store) store.showNotification('点赞失败：动态ID无效', 'error')
-    return
-  }
-  
+  if (!postId) return
   const token = localStorage.getItem('token')
   if (!token) {
-    console.error('点赞失败：用户未登录')
     if (store) store.showNotification('请先登录', 'error')
     return
   }
-  
   try {
-    // 找到当前动态，获取其点赞状态
     const currentPost = posts.value.find(p => p.id === postId)
     const currentIsLiked = currentPost?.isLiked || false
-    
     const response = await postsAPI.toggleLike(postId, !currentIsLiked)
     if (response.code === 0) {
-      // 更新主列表
-      const post = posts.value.find(p => p.id === postId)
-      if (post) {
-        post.likes = response.data.likes
-        post.isLiked = response.data.isLiked
-      }
-      // 更新详情页
-      if (selectedPost.value && selectedPost.value.id === postId) {
-        selectedPost.value.likes = response.data.likes
-        selectedPost.value.isLiked = response.data.isLiked
-        // 如果selectedPost不是posts里的引用，强制刷新
-        if (selectedPost.value !== post) {
-          selectedPost.value = { ...selectedPost.value }
+      // 点赞后强制刷新该动态的最新数据
+      const postDetail = await postsAPI.getPostById(postId)
+      if (postDetail.code === 0 && postDetail.data) {
+        // 更新主列表
+        const post = posts.value.find(p => p.id === postId)
+        if (post) {
+          post.likes = postDetail.data.likes
+          post.isLiked = postDetail.data.isLiked
+        }
+        // 更新详情页
+        if (selectedPost.value && selectedPost.value.id === postId) {
+          selectedPost.value.likes = postDetail.data.likes
+          selectedPost.value.isLiked = postDetail.data.isLiked
+          if (selectedPost.value !== post) {
+            selectedPost.value = { ...selectedPost.value }
+          }
         }
       }
       if (store) store.showNotification(
@@ -230,7 +224,6 @@ async function handleLike(postId) {
       if (store) store.showNotification('操作失败', 'error')
     }
   } catch (error) {
-    console.error('点赞操作失败:', error)
     if (store) store.showNotification('操作失败', 'error')
   }
 }
