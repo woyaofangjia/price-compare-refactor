@@ -35,6 +35,7 @@
 
 <script>
 import * as echarts from 'echarts'
+import axios from 'axios'
 
 export default {
   name: 'Charts',
@@ -52,9 +53,22 @@ export default {
     }
   },
   methods: {
-    initCharts() {
+    async initCharts() {
       // 用户活跃度分布图
       const userActivityChart = echarts.init(this.$refs.userActivityChart)
+      // 动态获取数据
+      let activityData = [
+        { value: 0, name: '高活跃用户' },
+        { value: 0, name: '中等活跃用户' },
+        { value: 0, name: '低活跃用户' },
+        { value: 0, name: '新用户' }
+      ]
+      try {
+        const res = await axios.get('/api/users/activity-distribution')
+        if (res.data && res.data.data) {
+          activityData = res.data.data
+        }
+      } catch (e) { /* ignore */ }
       userActivityChart.setOption({
         tooltip: { trigger: 'item' },
         legend: {
@@ -81,12 +95,7 @@ export default {
             }
           },
           labelLine: { show: false },
-          data: [
-            { value: 1548, name: '高活跃用户' },
-            { value: 535, name: '中等活跃用户' },
-            { value: 510, name: '低活跃用户' },
-            { value: 634, name: '新用户' }
-          ],
+          data: activityData,
           color: ['#4361ee', '#4cc9f0', '#f72585', '#6c757d']
         }]
       })
