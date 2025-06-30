@@ -366,18 +366,29 @@ async function onSubmitComment(comment) {
       // 重新加载评论第一页
       commentPage.value = 1
       await fetchComments(selectedPost.value.id)
-      // 更新主列表评论数
-      const post = userPosts.value.find(p => p.id === selectedPost.value.id)
-      if (post) {
-        post.comments = (post.comments || 0) + 1
-      }
-      // 更新详情页评论数
-      if (selectedPost.value) {
-        selectedPost.value.comments = (selectedPost.value.comments || 0) + 1
-        if (selectedPost.value !== post) {
-          selectedPost.value = { ...selectedPost.value }
+      
+      // 从后端获取最新的动态详情来更新评论数
+      try {
+        const postResponse = await postsAPI.getPostById(selectedPost.value.id)
+        if (postResponse.code === 0 && postResponse.data) {
+          const updatedPost = postResponse.data
+          // 更新主列表评论数
+          const post = userPosts.value.find(p => p.id === selectedPost.value.id)
+          if (post) {
+            post.comments = updatedPost.comments
+          }
+          // 更新详情页评论数
+          if (selectedPost.value) {
+            selectedPost.value.comments = updatedPost.comments
+            if (selectedPost.value !== post) {
+              selectedPost.value = { ...selectedPost.value }
+            }
+          }
         }
+      } catch (error) {
+        console.error('获取更新后的动态详情失败:', error)
       }
+      
       if (store) store.showNotification('评论成功', 'success')
     } else {
       if (store) store.showNotification('评论失败', 'error')
@@ -397,18 +408,29 @@ async function onDeleteComment(commentId) {
     if (response.code === 0) {
       // 重新加载评论列表
       await fetchComments(selectedPost.value.id)
-      // 更新主列表评论数
-      const post = userPosts.value.find(p => p.id === selectedPost.value.id)
-      if (post) {
-        post.comments = Math.max(0, (post.comments || 0) - 1)
-      }
-      // 更新详情页评论数
-      if (selectedPost.value) {
-        selectedPost.value.comments = Math.max(0, (selectedPost.value.comments || 0) - 1)
-        if (selectedPost.value !== post) {
-          selectedPost.value = { ...selectedPost.value }
+      
+      // 从后端获取最新的动态详情来更新评论数
+      try {
+        const postResponse = await postsAPI.getPostById(selectedPost.value.id)
+        if (postResponse.code === 0 && postResponse.data) {
+          const updatedPost = postResponse.data
+          // 更新主列表评论数
+          const post = userPosts.value.find(p => p.id === selectedPost.value.id)
+          if (post) {
+            post.comments = updatedPost.comments
+          }
+          // 更新详情页评论数
+          if (selectedPost.value) {
+            selectedPost.value.comments = updatedPost.comments
+            if (selectedPost.value !== post) {
+              selectedPost.value = { ...selectedPost.value }
+            }
+          }
         }
+      } catch (error) {
+        console.error('获取更新后的动态详情失败:', error)
       }
+      
       if (store) store.showNotification('评论删除成功', 'success')
     } else {
       if (store) store.showNotification('删除失败', 'error')
