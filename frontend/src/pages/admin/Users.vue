@@ -28,7 +28,6 @@
               <th>邮箱</th>
               <th>角色</th>
               <th>状态</th>
-              <th>注册时间</th>
               <th>操作</th>
             </tr>
           </thead>
@@ -38,13 +37,14 @@
               <td>
                 <div class="avatar-container">
                   <img 
-                    v-if="user.avatar" 
-                    :src="user.avatar" 
+                    v-if="user.avatar && user.avatar !== ''" 
+                    :src="getAvatarUrl(user)"
                     :alt="user.username"
                     class="user-avatar"
+                    @error="handleAvatarError"
                   />
                   <div v-else class="avatar-placeholder">
-                    {{ user.username.charAt(0).toUpperCase() }}
+                    {{ user.username ? user.username.charAt(0).toUpperCase() : '?' }}
                   </div>
                 </div>
               </td>
@@ -57,8 +57,8 @@
                   :disabled="user.id === currentUserId"
                   class="role-select"
                 >
-                  <option :value="false">用户</option>
-                  <option :value="true">管理员</option>
+                  <option :value="0">用户</option>
+                  <option :value="1">管理员</option>
                 </select>
               </td>
               <td>
@@ -72,7 +72,6 @@
                   <option value="banned">封禁</option>
                 </select>
               </td>
-              <td>{{ formatDate(user.created_at) }}</td>
               <td>
                 <button 
                   class="btn btn-danger btn-sm" 
@@ -127,6 +126,25 @@ const userToDelete = ref(null)
 const message = ref('')
 const messageType = ref('success')
 const currentUserId = ref(null)
+
+// 头像基础URL
+const AVATAR_BASE_URL = 'http://localhost:3000'
+const DEFAULT_AVATAR = 'https://picsum.photos/seed/user/40/40'
+
+// 获取头像显示URL
+function getAvatarUrl(user) {
+  if (user.avatar) {
+    if (user.avatar.startsWith('http')) {
+      return user.avatar
+    }
+    return AVATAR_BASE_URL + user.avatar
+  }
+  return DEFAULT_AVATAR
+}
+
+function handleAvatarError(event) {
+  event.target.src = DEFAULT_AVATAR
+}
 
 // 获取当前用户ID（从localStorage或用户信息中获取）
 onMounted(() => {
@@ -214,19 +232,6 @@ function showMessage(text, type = 'success') {
   setTimeout(() => {
     message.value = ''
   }, 3000)
-}
-
-// 格式化日期
-function formatDate(dateString) {
-  if (!dateString) return '-'
-  const date = new Date(dateString)
-  return date.toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
 }
 </script>
 

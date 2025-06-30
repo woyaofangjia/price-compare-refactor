@@ -73,7 +73,16 @@ function login() {
     })
     .catch(err => {
       if (err.response && err.response.status === 401) {
-        alert('用户名或密码错误');
+        const msg = err.response.data && err.response.data.message
+        if (msg && msg.includes('封禁')) {
+          alert('该账号已被封禁，无法登录');
+        } else if (msg && msg.includes('密码错误')) {
+          alert('用户名或密码错误');
+        } else if (msg && msg.includes('用户不存在')) {
+          alert('用户名或密码错误');
+        } else {
+          alert(msg || '登录失败，请稍后再试');
+        }
       } else {
         alert('登录失败，请稍后再试');
       }

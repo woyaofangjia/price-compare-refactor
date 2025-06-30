@@ -625,13 +625,26 @@ function renderCharts() {
   
   // 多平台价格对比折线图
   const comparisonCtx = comparisonCanvas.getContext('2d')
+  
+  // 生成所有平台数据的日期标签（去重并排序）
+  const allDates = new Set()
+  Object.values(comparisonData.value).forEach(platformData => {
+    platformData.forEach(item => {
+      allDates.add(item.date)
+    })
+  })
+  const sortedDates = Array.from(allDates).sort((a, b) => new Date(a) - new Date(b))
+  
   comparisonChart = new window.Chart(comparisonCtx, {
     type: 'line',
     data: {
-      labels: (comparisonData.value['京东'] || []).map(item => formatDateLabel(item.date)),
+      labels: sortedDates.map(date => formatDateLabel(date)),
       datasets: Object.keys(comparisonData.value).map(platform => ({
         label: platform,
-        data: comparisonData.value[platform].map(item => item.price),
+        data: sortedDates.map(date => {
+          const platformItem = comparisonData.value[platform].find(item => item.date === date)
+          return platformItem ? platformItem.price : null
+        }),
         borderColor: platformColors[platform] || '#4361ee',
         backgroundColor: platformColors[platform] ? `${platformColors[platform]}20` : 'rgba(67, 97, 238, 0.1)',
         borderWidth: 3,
