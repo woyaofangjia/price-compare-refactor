@@ -54,6 +54,15 @@ let users = [
     isadmin: 1,
     status: 'active',
     created_at: new Date().toISOString()
+  },
+  {
+    id: 5,
+    username: 'wen tian',
+    email: 'wentian@example.com',
+    password: '123456',
+    isadmin: 0,
+    status: 'active',
+    created_at: new Date().toISOString()
   }
 ];
 
@@ -101,11 +110,34 @@ function authenticateToken(req, res, next) {
     return res.status(401).json({ code: 1, message: '未提供认证令牌' });
   }
 
-  // 这里简化处理，实际应该验证JWT
-  if (token.startsWith('mock-jwt-token-')) {
-    // 从token中提取用户ID（简化处理）
-    // 实际项目中应该从JWT中解析用户信息
-    const user = users.find(u => u.id === 1); // 默认使用admin用户
+  try {
+    // 处理mock token（向后兼容）
+    if (token.startsWith('mock-jwt-token-')) {
+      const user = users.find(u => u.id === 1); // 默认使用admin用户
+      if (!user) {
+        return res.status(403).json({ code: 1, message: '用户不存在' });
+      }
+      
+      req.user = { 
+        id: user.id, 
+        username: user.username,
+        isadmin: user.isadmin
+      };
+      next();
+      return;
+    }
+
+    // 处理真实JWT token
+    // 这里简化处理，实际应该使用jwt库验证
+    // 从token中提取用户信息（这里假设token格式为：eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwidXNlcm5hbWUiOiJ3ZW4gdGlhbiIsImlhdCI6MTc1MTI0OTM5NCwiZXhwIjoxNzUxMzM1Nzk0fQ.2rDRrJ00YPJGET7mXwMcQeOqhp2Z3FilfTxNLuk6jaY）
+    
+    // 解码JWT payload（简化处理，实际应该验证签名）
+    const payload = token.split('.')[1];
+    const decodedPayload = JSON.parse(Buffer.from(payload, 'base64').toString());
+    
+    const userId = decodedPayload.id;
+    const user = users.find(u => u.id === userId);
+    
     if (!user) {
       return res.status(403).json({ code: 1, message: '用户不存在' });
     }
@@ -116,7 +148,8 @@ function authenticateToken(req, res, next) {
       isadmin: user.isadmin
     };
     next();
-  } else {
+  } catch (error) {
+    console.error('JWT验证失败:', error);
     return res.status(403).json({ code: 1, message: '无效的认证令牌' });
   }
 }
@@ -422,6 +455,29 @@ app.delete('/posts/:id', authenticateToken, (req, res) => {
   res.json({
     code: 0,
     message: '删除成功'
+  });
+});
+
+// 删除用户所有动态
+app.delete('/posts/user/:userId/all', authenticateToken, (req, res) => {
+  const userId = parseInt(req.params.userId);
+  
+  // 验证用户权限（只能删除自己的动态）
+  if (req.user.id !== userId) {
+    return res.status(403).json({ code: 1, message: '无权限删除其他用户的动态' });
+  }
+  
+  // 删除用户的所有动态
+  const originalLength = posts.length;
+  posts = posts.filter(post => post.userId !== userId);
+  const deletedCount = originalLength - posts.length;
+  
+  res.json({
+    code: 0,
+    message: '删除成功',
+    data: {
+      deletedCount: deletedCount
+    }
   });
 });
 

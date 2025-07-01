@@ -383,6 +383,8 @@ async function onSubmitComment(comment) {
         if (selectedPost.value !== post) {
           selectedPost.value = { ...selectedPost.value }
         }
+      } catch (error) {
+        console.error('获取更新后的动态详情失败:', error)
       }
         }
       } catch (error) {
@@ -425,6 +427,8 @@ async function onDeleteComment(commentId) {
         if (selectedPost.value !== post) {
           selectedPost.value = { ...selectedPost.value }
         }
+      } catch (error) {
+        console.error('获取更新后的动态详情失败:', error)
       }
         }
       } catch (error) {
