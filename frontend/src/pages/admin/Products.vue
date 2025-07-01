@@ -285,20 +285,48 @@ export default {
         alert('删除失败: ' + error)
       }
     },
-    editProduct(product) {
-      this.editForm = {
-        id: product.id,
-        title: product.name,
-        desc: product.desc || '',
-        img: product.img || '',
-        category: product.category || '',
-        brand: product.brand || '',
-        is_hot: product.is_hot || 0,
-        is_drop: product.is_drop || 0,
-        platform: '',
-        price: ''
+    async editProduct(product) {
+      try {
+        // 获取商品的详细信息
+        const response = await fetch(`/api/products/${product.id}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        })
+        const result = await response.json()
+        
+        if (result.code === 0) {
+          // 使用标准格式的响应数据
+          const productDetail = result.data
+          console.log('获取到的商品详情:', productDetail)
+          
+          this.editForm = {
+            id: productDetail.id,
+            title: productDetail.title || productDetail.name || '',
+            desc: productDetail.desc || '',
+            img: productDetail.img || productDetail.image || '',
+            category: productDetail.category || '',
+            brand: productDetail.brand || '',
+            is_hot: productDetail.is_hot || 0,
+            is_drop: productDetail.is_drop || 0,
+            platform: '',
+            price: ''
+          }
+          
+          // 如果有当前价格，也显示在价格字段中
+          if (productDetail.current_price || productDetail.price) {
+            this.editForm.price = productDetail.current_price || productDetail.price
+          }
+          
+          this.showEditDialog = true
+        } else {
+          console.error('API返回错误:', result)
+          alert('获取商品详情失败: ' + (result.message || '未知错误'))
+        }
+      } catch (error) {
+        console.error('获取商品详情失败:', error)
+        alert('获取商品详情失败: ' + error.message)
       }
-      this.showEditDialog = true
     },
     handlePageChange(page) {
       if (page !== this.currentPage && page > 0 && page <= this.totalPages) {
