@@ -62,7 +62,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { getAvatarUrl, handleAvatarError } from '@/utils/avatar.js'
 
@@ -114,6 +114,11 @@ function getFullImageUrl(url) {
   if (url.startsWith('http')) return url
   return 'http://localhost:3000' + url
 }
+
+// 调试：监听likes变化
+watch(() => props.post.likes, (newVal) => {
+  console.log('DynamicCard likes变化', newVal, props.post.id)
+})
 </script>
 
 <style scoped>

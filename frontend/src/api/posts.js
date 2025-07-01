@@ -105,7 +105,16 @@ export const postsAPI = {
   },
   deleteComment(postId, commentId) {
     return api.delete(`/posts/${postId}/comments/${commentId}`)
-  }
+  },
+
+  // 管理员专用API
+  getAdminPosts(params) { return api.get('/admin/posts', { params }); },
+  deleteAdminPost(id) { return api.delete(`/admin/posts/${id}`); },
+  getAdminPostDetail(id) { return api.get(`/admin/posts/${id}`); },
+  // 管理员删除评论
+  deleteAdminComment(postId, commentId) {
+    return api.delete(`/admin/posts/${postId}/comments/${commentId}`);
+  },
 }
 
 // 文件上传API

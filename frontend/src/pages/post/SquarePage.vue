@@ -89,9 +89,9 @@
         <DynamicDetailContent
           :post="selectedPost"
           :comments="detailComments"
-          :isLiked="selectedPost?.isLiked || false"
-          :isCollected="selectedPost?.isCollected || false"
-          :likes="selectedPost?.likes || 0"
+          :isLiked="selectedPost ? selectedPost.isLiked : false"
+          :isCollected="selectedPost ? selectedPost.isCollected : false"
+          :likes="selectedPost ? selectedPost.likes : 0"
           :currentUser="currentUser"
           :commentTotal="commentTotal"
           :commentPage="commentPage"
@@ -156,29 +156,15 @@ async function fetchPosts() {
       sort: sortType.value
     }
     
-    console.log('请求参数:', params)
     const response = await postsAPI.getPosts(params)
-    console.log('API响应:', response)
     
     if (response.code === 0) {
       posts.value = response.data.list
       total.value = response.data.total
-      
-      // 调试信息：检查每个动态的图片数据
-      posts.value.forEach((post, index) => {
-        console.log(`动态 ${index + 1}:`, {
-          id: post.id,
-          content: post.content,
-          images: post.images,
-          imagesLength: post.images ? post.images.length : 0
-        })
-      })
     } else {
-      console.error('API返回错误:', response)
       if (store) store.showNotification('获取动态列表失败', 'error')
     }
   } catch (error) {
-    console.error('获取动态列表失败:', error)
     if (store) store.showNotification('获取动态列表失败', 'error')
   } finally {
     loading.value = false
@@ -187,39 +173,47 @@ async function fetchPosts() {
 
 // 处理点赞
 async function handleLike(postId) {
-  if (!postId) return
+  if (!postId) {
+    if (store) store.showNotification('点赞失败：动态ID无效', 'error')
+    return
+  }
+  
   const token = localStorage.getItem('token')
   if (!token) {
     if (store) store.showNotification('请先登录', 'error')
     return
   }
+  
   try {
+    // 找到当前动态，获取其点赞状态
     const currentPost = posts.value.find(p => p.id === postId)
     const currentIsLiked = currentPost?.isLiked || false
+    
     const response = await postsAPI.toggleLike(postId, !currentIsLiked)
     if (response.code === 0) {
-      // 点赞后强制刷新该动态的最新数据
-      const postDetail = await postsAPI.getPostById(postId)
-      if (postDetail.code === 0 && postDetail.data) {
-        // 更新主列表
-        const post = posts.value.find(p => p.id === postId)
-        if (post) {
-          post.likes = postDetail.data.likes
-          post.isLiked = postDetail.data.isLiked
+      const idx = posts.value.findIndex(p => p.id == postId) // 用==宽松比较
+      if (idx !== -1) {
+        posts.value[idx] = {
+          ...posts.value[idx],
+          likes: response.data.likes,
+          isLiked: response.data.isLiked
         }
+        // 强制刷新响应式
+        posts.value = [...posts.value]
         // 更新详情页
         if (selectedPost.value && selectedPost.value.id === postId) {
-          selectedPost.value.likes = postDetail.data.likes
-          selectedPost.value.isLiked = postDetail.data.isLiked
+          selectedPost.value.likes = response.data.likes
+          selectedPost.value.isLiked = response.data.isLiked
+          // 如果selectedPost不是posts里的引用，强制刷新
           if (selectedPost.value !== post) {
             selectedPost.value = { ...selectedPost.value }
           }
         }
+        if (store) store.showNotification(
+          response.data.isLiked ? '点赞成功' : '取消点赞', 
+          'success'
+        )
       }
-      if (store) store.showNotification(
-        response.data.isLiked ? '点赞成功' : '取消点赞', 
-        'success'
-      )
     } else {
       if (store) store.showNotification('操作失败', 'error')
     }
@@ -257,7 +251,6 @@ async function handleCollect(postId) {
       if (store) store.showNotification('操作失败', 'error')
     }
   } catch (error) {
-    console.error('收藏操作失败:', error)
     if (store) store.showNotification('操作失败', 'error')
   }
 }
@@ -283,7 +276,6 @@ async function handleDelete(postId) {
       if (store) store.showNotification('删除失败', 'error')
     }
   } catch (error) {
-    console.error('删除动态失败:', error)
     if (store) store.showNotification('删除失败', 'error')
   }
 }
@@ -338,9 +330,6 @@ async function fetchComments(postId) {
       detailComments.value = []
       commentTotal.value = 0
     }
-  } catch (e) {
-    detailComments.value = []
-    commentTotal.value = 0
   } finally {
     commentLoading.value = false
   }
@@ -400,7 +389,6 @@ async function onSubmitComment(comment) {
           }
         }
       } catch (error) {
-        console.error('获取更新后的动态详情失败:', error)
       }
       
       if (store) store.showNotification('评论成功', 'success')
@@ -408,7 +396,6 @@ async function onSubmitComment(comment) {
       if (store) store.showNotification('评论失败', 'error')
     }
   } catch (error) {
-    console.error('评论操作失败:', error)
     if (store) store.showNotification('评论失败', 'error')
   } finally {
     commentSubmitting.value = false
@@ -442,7 +429,6 @@ async function onDeleteComment(commentId) {
           }
         }
       } catch (error) {
-        console.error('获取更新后的动态详情失败:', error)
       }
       
       if (store) store.showNotification('评论删除成功', 'success')
@@ -450,7 +436,6 @@ async function onDeleteComment(commentId) {
       if (store) store.showNotification('删除失败', 'error')
     }
   } catch (error) {
-    console.error('删除评论失败:', error)
     if (store) store.showNotification('删除失败', 'error')
   }
 }

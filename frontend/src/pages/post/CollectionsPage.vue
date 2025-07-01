@@ -378,18 +378,18 @@ async function onSubmitComment(comment) {
         const postResponse = await postsAPI.getPostById(selectedPost.value.id)
         if (postResponse.code === 0 && postResponse.data) {
           const updatedPost = postResponse.data
-          // 更新主列表评论数
-          const post = collections.value.find(p => p.id === selectedPost.value.id)
-          if (post) {
+      // 更新主列表评论数
+      const post = collections.value.find(p => p.id === selectedPost.value.id)
+      if (post) {
             post.comments = updatedPost.comments
-          }
-          // 更新详情页评论数
-          if (selectedPost.value) {
+      }
+      // 更新详情页评论数
+      if (selectedPost.value) {
             selectedPost.value.comments = updatedPost.comments
-            if (selectedPost.value !== post) {
-              selectedPost.value = { ...selectedPost.value }
-            }
-          }
+        if (selectedPost.value !== post) {
+          selectedPost.value = { ...selectedPost.value }
+        }
+      }
         }
       } catch (error) {
         console.error('获取更新后的动态详情失败:', error)
@@ -420,18 +420,18 @@ async function onDeleteComment(commentId) {
         const postResponse = await postsAPI.getPostById(selectedPost.value.id)
         if (postResponse.code === 0 && postResponse.data) {
           const updatedPost = postResponse.data
-          // 更新主列表评论数
-          const post = collections.value.find(p => p.id === selectedPost.value.id)
-          if (post) {
+      // 更新主列表评论数
+      const post = collections.value.find(p => p.id === selectedPost.value.id)
+      if (post) {
             post.comments = updatedPost.comments
-          }
-          // 更新详情页评论数
-          if (selectedPost.value) {
+      }
+      // 更新详情页评论数
+      if (selectedPost.value) {
             selectedPost.value.comments = updatedPost.comments
-            if (selectedPost.value !== post) {
-              selectedPost.value = { ...selectedPost.value }
-            }
-          }
+        if (selectedPost.value !== post) {
+          selectedPost.value = { ...selectedPost.value }
+        }
+      }
         }
       } catch (error) {
         console.error('获取更新后的动态详情失败:', error)
