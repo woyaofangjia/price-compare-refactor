@@ -54,11 +54,11 @@
         <div 
           class="brand-card" 
           v-for="brand in brands" 
-          :key="brand.brand" 
-          @click="goToBrand(brand.brand)"
+          :key="brand.id" 
+          @click="goToBrand(brand.id)"
         >
           <div class="brand-info">
-            <h3 class="brand-name">{{ brand.brand }}</h3>
+            <h3 class="brand-name">{{ brand.name }}</h3>
             <p class="brand-count">{{ brand.product_count }} 件商品</p>
           </div>
           <div class="brand-arrow">
@@ -143,8 +143,8 @@ function goToProduct(id) {
   router.push(`/product/${id}`)
 }
 
-function goToBrand(brandName) {
-  router.push(`/brand/${encodeURIComponent(brandName)}`)
+function goToBrand(brandId) {
+  router.push(`/brand/${brandId}`)
 }
 
 function onImgError(e) {

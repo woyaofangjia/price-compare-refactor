@@ -32,6 +32,9 @@
           <div class="product-info">
             <div class="product-title">{{ item.title }}</div>
             <div class="product-price">{{ item.current_price || item.price || '暂无价格' }}</div>
+            <div class="platform-tags">
+              <span class="platform-tag" v-for="tag in item.platforms" :key="tag">{{ tag }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -89,6 +92,8 @@ const pageSize = ref(12)
 const total = ref(0)
 const defaultImg = '/default-product.png'
 
+const brandId = computed(() => route.params.brandId)
+
 const brandName = computed(() => route.params.brandName)
 
 const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
@@ -101,12 +106,10 @@ async function loadProducts() {
   loading.value = true
   try {
     const response = await fetch(
-      `/api/products/brands/${encodeURIComponent(brandName.value)}?page=${currentPage.value}&pageSize=${pageSize.value}`
+      `/api/products/brands/${brandId.value}?page=${currentPage.value}&pageSize=${pageSize.value}`
     )
     const result = await response.json()
-    
     if (result.code === 0) {
-      // 处理商品数据，添加平台信息
       products.value = result.data.list.map(product => ({
         ...product,
         platforms: product.platform ? [product.platform] : []
@@ -131,7 +134,7 @@ function onImgError(e) {
 }
 
 function changePage(page) {
-  if (page >= 1 && page <= totalPages.value) {
+  if (page >= 1 && page <= Math.ceil(total.value / pageSize.value)) {
     currentPage.value = page
     loadProducts()
   }
@@ -248,8 +251,6 @@ function changePage(page) {
   font-weight: bold;
   margin-bottom: 8px;
 }
-
-
 
 .platform-tags {
   display: flex;

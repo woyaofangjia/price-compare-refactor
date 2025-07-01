@@ -34,7 +34,7 @@ const routes = [
   { path: '/collections', name: 'Collections', component: CollectionsPage, meta: { requiresAuth: true } },
   { path: '/auth', name: 'Auth', component: Auth },
   { path: '/product/:id', name: 'ProductDetail', component: Detail },
-  { path: '/brand/:brandName', name: 'BrandProducts', component: BrandProducts },
+  { path: '/brand/:brandId', name: 'BrandProducts', component: BrandProducts },
   {
     path: '/admin',
     component: Admin,

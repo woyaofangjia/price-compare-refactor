@@ -52,38 +52,42 @@
             </div>
             <div class="form-row form-row-inline">
               <div class="form-group">
-                <label>分类</label>
-                <input v-model="editForm.category" />
-              </div>
+              <label>分类</label>
+              <input v-model="editForm.category" />
+            </div>
               <div class="form-group">
-                <label>品牌</label>
-                <input v-model="editForm.brand" />
-              </div>
+              <label>品牌</label>
+              <select v-model="editForm.brand_id">
+                <option v-for="brand in brands" :value="brand.id">{{ brand.name }}</option>
+                <option value="__new__">+ 新建品牌</option>
+              </select>
+              <input v-if="editForm.brand_id === '__new__'" v-model="editForm.new_brand_name" placeholder="输入新品牌名" />
+            </div>
             </div>
             <div class="form-row form-row-inline">
               <div class="form-group">
-                <label>是否热门</label>
-                <select v-model.number="editForm.is_hot">
-                  <option :value="1">是</option>
-                  <option :value="0">否</option>
-                </select>
-              </div>
+              <label>是否热门</label>
+              <select v-model.number="editForm.is_hot">
+                <option :value="1">是</option>
+                <option :value="0">否</option>
+              </select>
+            </div>
               <div class="form-group">
-                <label>是否降价</label>
-                <select v-model.number="editForm.is_drop">
-                  <option :value="1">是</option>
-                  <option :value="0">否</option>
-                </select>
-              </div>
+              <label>是否降价</label>
+              <select v-model.number="editForm.is_drop">
+                <option :value="1">是</option>
+                <option :value="0">否</option>
+              </select>
+            </div>
             </div>
             <div class="form-row form-row-inline">
               <div class="form-group">
-                <label>平台</label>
-                <input v-model="editForm.platform" placeholder="如 京东/天猫/拼多多/苏宁" />
-              </div>
+              <label>平台</label>
+              <input v-model="editForm.platform" placeholder="如 京东/天猫/拼多多/苏宁" />
+            </div>
               <div class="form-group">
-                <label>价格</label>
-                <input v-model.number="editForm.price" type="number" min="0" step="0.01" />
+              <label>价格</label>
+              <input v-model.number="editForm.price" type="number" min="0" step="0.01" />
               </div>
             </div>
             <div class="form-actions">
@@ -195,8 +199,9 @@ export default {
       },
       showEditDialog: false,
       editForm: {
-        id: '', title: '', desc: '', img: '', category: '', brand: '', is_hot: 0, is_drop: 0, platform: '', price: ''
+        id: '', title: '', desc: '', img: '', category: '', brand_id: '', is_hot: 0, is_drop: 0, platform: '', price: ''
       },
+      brands: [],
     }
   },
   computed: {
@@ -212,6 +217,8 @@ export default {
   },
   async mounted() {
     await this.loadProducts(this.currentPage)
+    const res = await fetch('/api/products/brands')
+    this.brands = (await res.json()).data
   },
   methods: {
     async loadProducts(page = 1) {
@@ -312,7 +319,7 @@ export default {
             desc: productDetail.desc || '',
             img: productDetail.img || productDetail.image || '',
             category: productDetail.category || '',
-            brand: productDetail.brand || '',
+            brand_id: productDetail.brand_id || '',
             is_hot: productDetail.is_hot || 0,
             is_drop: productDetail.is_drop || 0,
             platform: '',
