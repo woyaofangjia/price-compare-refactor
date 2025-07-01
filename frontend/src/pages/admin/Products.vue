@@ -50,35 +50,41 @@
               <label>图片URL</label>
               <input v-model="editForm.img" />
             </div>
-            <div class="form-row">
-              <label>分类</label>
-              <input v-model="editForm.category" />
+            <div class="form-row form-row-inline">
+              <div class="form-group">
+                <label>分类</label>
+                <input v-model="editForm.category" />
+              </div>
+              <div class="form-group">
+                <label>品牌</label>
+                <input v-model="editForm.brand" />
+              </div>
             </div>
-            <div class="form-row">
-              <label>品牌</label>
-              <input v-model="editForm.brand" />
+            <div class="form-row form-row-inline">
+              <div class="form-group">
+                <label>是否热门</label>
+                <select v-model.number="editForm.is_hot">
+                  <option :value="1">是</option>
+                  <option :value="0">否</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>是否降价</label>
+                <select v-model.number="editForm.is_drop">
+                  <option :value="1">是</option>
+                  <option :value="0">否</option>
+                </select>
+              </div>
             </div>
-            <div class="form-row">
-              <label>是否热门</label>
-              <select v-model.number="editForm.is_hot">
-                <option :value="1">是</option>
-                <option :value="0">否</option>
-              </select>
-            </div>
-            <div class="form-row">
-              <label>是否降价</label>
-              <select v-model.number="editForm.is_drop">
-                <option :value="1">是</option>
-                <option :value="0">否</option>
-              </select>
-            </div>
-            <div class="form-row">
-              <label>平台</label>
-              <input v-model="editForm.platform" placeholder="如 京东/天猫/拼多多/苏宁" />
-            </div>
-            <div class="form-row">
-              <label>价格</label>
-              <input v-model.number="editForm.price" type="number" min="0" step="0.01" />
+            <div class="form-row form-row-inline">
+              <div class="form-group">
+                <label>平台</label>
+                <input v-model="editForm.platform" placeholder="如 京东/天猫/拼多多/苏宁" />
+              </div>
+              <div class="form-group">
+                <label>价格</label>
+                <input v-model.number="editForm.price" type="number" min="0" step="0.01" />
+              </div>
             </div>
             <div class="form-actions">
               <button class="btn btn-primary" type="submit">保存</button>
@@ -633,6 +639,16 @@ export default {
   .section-actions {
     flex-wrap: wrap;
   }
+  
+  .form-row-inline {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .dialog {
+    margin: 20px;
+    max-width: calc(100vw - 40px);
+  }
 }
 
 .dialog-mask {
@@ -649,6 +665,9 @@ export default {
   border-radius: 12px;
   padding: 32px 28px 20px 28px;
   min-width: 340px;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
   box-shadow: 0 8px 32px rgba(0,0,0,0.12);
   position: relative;
 }
@@ -664,12 +683,21 @@ export default {
   display: flex;
   flex-direction: column;
 }
+.form-row-inline {
+  flex-direction: row;
+  gap: 12px;
+}
+.form-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
 .form-row label {
   font-size: 0.98rem;
   margin-bottom: 4px;
   color: #333;
 }
-.form-row input, .form-row textarea {
+.form-row input, .form-row textarea, .form-row select {
   padding: 7px 10px;
   border: 1px solid #e0e0e0;
   border-radius: 5px;

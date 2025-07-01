@@ -46,6 +46,31 @@
         </div>
       </div>
 
+      <!-- 品牌专栏 -->
+      <h2 class="section-title">
+        <i class="fas fa-tags"></i> 品牌专栏
+      </h2>
+      <div class="brands-grid" v-if="brands.length > 0">
+        <div 
+          class="brand-card" 
+          v-for="brand in brands" 
+          :key="brand.brand" 
+          @click="goToBrand(brand.brand)"
+        >
+          <div class="brand-info">
+            <h3 class="brand-name">{{ brand.brand }}</h3>
+            <p class="brand-count">{{ brand.product_count }} 件商品</p>
+          </div>
+          <div class="brand-arrow">
+            <i class="fas fa-chevron-right"></i>
+          </div>
+        </div>
+      </div>
+      <div class="brands-loading" v-else-if="brandsLoading">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>加载品牌中...</p>
+      </div>
+
       <h2 class="section-title">今日热门商品</h2>
       <div class="products-grid">
         <div class="product-card" v-for="item in hotProducts" :key="item.id" @click="goToProduct(item.id)" style="cursor:pointer;">
@@ -87,9 +112,24 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const hotProducts = ref([])
 const dropProducts = ref([])
+const brands = ref([])
+const brandsLoading = ref(true)
 const defaultImg = '/default-product.png'
 
 onMounted(async () => {
+  // 品牌列表
+  try {
+    const brandsRes = await fetch('/api/products/brands')
+    const brandsResult = await brandsRes.json()
+    if (brandsResult.code === 0) {
+      brands.value = brandsResult.data
+    }
+  } catch (error) {
+    console.error('获取品牌列表失败:', error)
+  } finally {
+    brandsLoading.value = false
+  }
+
   // 热门商品
   const hotRes = await fetch('/api/products/hot')
   hotProducts.value = await hotRes.json()
@@ -101,6 +141,10 @@ onMounted(async () => {
 
 function goToProduct(id) {
   router.push(`/product/${id}`)
+}
+
+function goToBrand(brandName) {
+  router.push(`/brand/${encodeURIComponent(brandName)}`)
 }
 
 function onImgError(e) {
@@ -186,6 +230,75 @@ function onImgError(e) {
   margin-right: 10px;
 }
 
+/* 品牌专栏样式 */
+.brands-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.brand-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  color: var(--primary);
+}
+
+.brand-info {
+  flex: 1;
+}
+
+.brand-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 5px 0;
+  color: var(--dark);
+}
+
+.brand-count {
+  font-size: 0.9rem;
+  color: var(--gray);
+  margin: 0;
+}
+
+.brand-arrow {
+  color: var(--gray);
+  transition: all 0.3s ease;
+}
+
+.brand-card:hover .brand-arrow {
+  color: var(--primary);
+  transform: translateX(3px);
+}
+
+.brands-loading {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--gray);
+}
+
+.brands-loading i {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  color: var(--light-gray);
+}
+
+.brands-loading p {
+  margin: 0;
+}
+
 .products-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -261,10 +374,27 @@ function onImgError(e) {
   .quick-links {
     grid-template-columns: repeat(2, 1fr);
   }
+  
+  .brands-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
 }
 @media (max-width: 700px) {
   .quick-links {
     grid-template-columns: 1fr;
+  }
+  
+  .brands-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+  }
+  
+  .brand-card {
+    padding: 15px;
+  }
+  
+  .brand-name {
+    font-size: 1rem;
   }
 }
 </style>
