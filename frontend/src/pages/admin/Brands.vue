@@ -100,8 +100,19 @@ async function saveBrand() {
 }
 
 async function deleteBrand(id) {
-  await axios.delete(`/api/brands/${id}`)
-  fetchBrands()
+  if (!confirm('确定要删除该品牌吗？该品牌下所有商品将被下架！')) return;
+  try {
+    const res = await axios.delete(`/api/brands/${id}`)
+    if (res.data.code === 0) {
+      // 刷新品牌列表
+      await fetchBrands()
+      alert('品牌已删除，相关商品已下架')
+    } else {
+      alert('删除失败: ' + res.data.message)
+    }
+  } catch (error) {
+    alert('删除失败: ' + error.message)
+  }
 }
 
 function closeDialog() {

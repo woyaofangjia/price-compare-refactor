@@ -32,9 +32,6 @@
           <div class="product-info">
             <div class="product-title">{{ item.title }}</div>
             <div class="product-price">{{ item.current_price || item.price || '暂无价格' }}</div>
-            <div class="platform-tags">
-              <span class="platform-tag" v-for="tag in item.platforms" :key="tag">{{ tag }}</span>
-            </div>
           </div>
         </div>
       </div>
