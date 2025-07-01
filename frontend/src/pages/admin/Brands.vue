@@ -17,7 +17,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="brand in brands" :key="brand.id">
+          <tr v-for="brand in pagedBrands" :key="brand.id">
             <td>{{ brand.id }}</td>
             <td>{{ brand.name }}</td>
             <td>
@@ -30,6 +30,17 @@
           </tr>
         </tbody>
       </table>
+      <div class="pagination">
+        <div 
+          class="page-item" 
+          v-for="p in totalPages" 
+          :key="p" 
+          :class="{active: page === p}"
+          @click="handlePageChange(p)"
+        >
+          {{ p }}
+        </div>
+      </div>
       <!-- 新增/编辑品牌弹窗 -->
       <div v-if="showAddDialog || editingBrand" class="dialog-mask" @click.self="closeDialog">
         <div class="dialog">
@@ -47,38 +58,73 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import axios from 'axios'
 
-const brands = ref([
-  { id: 1, name: 'Apple', logo: 'https://logo.clearbit.com/apple.com' },
-  { id: 2, name: 'Sony', logo: 'https://logo.clearbit.com/sony.com' }
-])
+const brands = ref([])
 const showAddDialog = ref(false)
 const editingBrand = ref(null)
 const brandForm = ref({ name: '', logo: '' })
+const page = ref(1)
+const pageSize = ref(5)
+const total = computed(() => brands.value.length)
+const totalPages = computed(() => Math.ceil(total.value / pageSize.value) || 1)
+const pagedBrands = computed(() => {
+  const start = (page.value - 1) * pageSize.value
+  return brands.value.slice(start, start + pageSize.value)
+})
+
+const fetchBrands = async () => {
+  const res = await axios.get('/api/brands')
+  brands.value = res.data.sort((a, b) => a.id - b.id)
+  page.value = 1 // 每次刷新重置到第一页
+}
+
+onMounted(fetchBrands)
 
 function editBrand(brand) {
   editingBrand.value = brand
   brandForm.value = { ...brand }
 }
-function saveBrand() {
+
+async function saveBrand() {
   if (editingBrand.value) {
-    Object.assign(editingBrand.value, brandForm.value)
+    // 编辑
+    await axios.put(`/api/brands/${editingBrand.value.id}`, brandForm.value)
   } else {
-    brands.value.push({
-      id: Date.now(),
-      ...brandForm.value
-    })
+    // 新增
+    await axios.post('/api/brands', brandForm.value)
   }
   closeDialog()
+  fetchBrands()
 }
-function deleteBrand(id) {
-  brands.value = brands.value.filter(b => b.id !== id)
+
+async function deleteBrand(id) {
+  if (!confirm('确定要删除该品牌吗？该品牌下所有商品将被下架！')) return;
+  try {
+    const res = await axios.delete(`/api/brands/${id}`)
+    if (res.data.code === 0) {
+      // 刷新品牌列表
+      await fetchBrands()
+      alert('品牌已删除，相关商品已下架')
+    } else {
+      alert('删除失败: ' + res.data.message)
+    }
+  } catch (error) {
+    alert('删除失败: ' + error.message)
+  }
 }
+
 function closeDialog() {
   showAddDialog.value = false
   editingBrand.value = null
   brandForm.value = { name: '', logo: '' }
+}
+
+function handlePageChange(p) {
+  if (p !== page.value && p > 0 && p <= totalPages.value) {
+    page.value = p
+  }
 }
 </script>
 
@@ -170,4 +216,29 @@ function closeDialog() {
 }
 .dialog-mask { position: fixed; left:0;top:0;right:0;bottom:0; background:rgba(0,0,0,0.1); display:flex;align-items:center;justify-content:center; }
 .dialog { background:#fff; padding:24px; border-radius:8px; min-width:300px; }
+.pagination {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+}
+.page-item {
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--light);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  border: none;
+  margin: 0 2px;
+}
+.page-item:hover, .page-item.active {
+  background: var(--primary);
+  color: white;
+}
 </style>

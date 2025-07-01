@@ -17,6 +17,7 @@ import Products from '@/pages/admin/Products.vue'
 import Posts from '@/pages/admin/Posts.vue'
 import PostDetail from '@/pages/admin/PostDetail.vue'
 import Charts from '@/pages/admin/Charts.vue'
+import BrandProducts from '@/pages/home/BrandProducts.vue'
 
 const routes = [
   { path: '/', name: 'Home', component: Home },
@@ -33,6 +34,7 @@ const routes = [
   { path: '/collections', name: 'Collections', component: CollectionsPage, meta: { requiresAuth: true } },
   { path: '/auth', name: 'Auth', component: Auth },
   { path: '/product/:id', name: 'ProductDetail', component: Detail },
+  { path: '/brand/:brandId', name: 'BrandProducts', component: BrandProducts },
   {
     path: '/admin',
     component: Admin,
