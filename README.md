@@ -14,3 +14,7 @@
 ## 技术重构
 - 前端仅修复小bug。
 - 现在使用Java对后端进行重构。
+
+## 启动方式
+- 前端：npm run dev
+- 后端：mvn spring-boot:run
