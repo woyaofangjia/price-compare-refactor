@@ -539,13 +539,3 @@ docker run -p 8080:8080 bijiabao-backend
 3. 提交更改
 4. 推送到分支
 5. 创建Pull Request
-
-## 许可证
-
-MIT License
-
-## 联系方式
-
-- 项目维护者: [Your Name]
-- 邮箱: [your.email@example.com]
-- 项目地址: [repository-url] 
